@@ -267,7 +267,7 @@ function getMonthGZ(y, m) {
   const gan = GAN.indexOf(gz[0]), ji = JI.indexOf(gz[1]);
   return { gan, ji, hanja: gz, ilju: GAN_K[gan] + JI_K[ji] };
 }
-const luckStars = raw => Math.max(1, Math.min(5, 2 + Math.round(raw / 1.5))); // 원점수 → ★1~5
+const luckStars = raw => raw >= 3 ? 5 : raw >= 2 ? 4 : raw >= 0 ? 3 : raw >= -1 ? 2 : 1; // 원점수 → ★ (특별한 기운 없는 달 = ★3 무난)
 // isMale: 남자는 재성, 여자는 관성을 애정 오행으로 본다
 function monthlyLuck(p, isMale, y, m) {
   const g = getMonthGZ(y, m);
@@ -291,7 +291,7 @@ function monthlyLuck(p, isMale, y, m) {
   if (rel === "육합" || rel === "삼합") { l += 1; lTags.push(`일지 ${rel}`); }
   if (hap) { l += 1; lTags.push("천간합"); }
   if (rel === "충") { l -= 2; lTags.push("일지 충"); }
-  return { m, gz: g, sg, bg, wealth: luckStars(w), love: luckStars(l), wTags, lTags };
+  return { m, gz: g, sg, bg, wealth: luckStars(w), love: luckStars(l), wRaw: w, lRaw: l, wTags, lTags };
 }
 
 // ---------- 토정비결 괘 ----------
