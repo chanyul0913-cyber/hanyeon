@@ -35,9 +35,9 @@ function gaugeSVG(score, label) {
 
 // 피크·합궁 배지 HTML
 function peakBadge(isPeak, herStrong, westHap, danger) { // 오늘·일별·궁합 분석 공용
-  return (danger ? `<span class="badge b-tension">⚡ 최고 위험</span>` : "") + (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
+  return (danger ? `<span class="badge b-tension">⚡ 최고 위험</span>` : "") + (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-west">✿ 서양합궁</span>` : "");
 }
-const lottoBadge = (l1, l2) => (l1 && l1.ok ? `<span class="badge b-charge">🍀 나의 로또</span>` : "") + (l2 && l2.ok ? `<span class="badge b-charge">🍀 그녀 로또</span>` : "");
+const lottoBadge = (l1, l2) => (l1 && l1.ok ? `<span class="badge b-lotto">🍀 나의 로또</span>` : "") + (l2 && l2.ok ? `<span class="badge b-lotto">🍀 그녀 로또</span>` : "");
 const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
 // ---------- 비밀번호 게이트 ----------
 async function tryUnlock() {
@@ -202,9 +202,9 @@ function renderHome() {
   });
   const both = days.filter(o => o.saju && o.west), any = days.filter(o => o.saju || o.west);
   const pick = [...both, ...any.filter(o => !(o.saju && o.west))].slice(0, 10).sort((a, b) => a.x.date - b.x.date);
-  const tag = o => (o.saju ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (o.west ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
+  const tag = o => (o.saju ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (o.west ? `<span class="badge b-west">✿ 서양합궁</span>` : "");
   $("homeFlow").innerHTML = `<div class="card"><div class="sec-t">합방합궁 — 향후 30일</div>
-    <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 합궁</b> ${days.filter(o => o.saju).length}일${hasW ? ` · <b style="color:var(--su)">✿ 서양합궁</b> ${days.filter(o => o.west).length}일 · <b style="color:var(--gold2)">둘 다</b> ${both.length}일` : ""}</div>
+    <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--good)">✿ 합궁</b> ${days.filter(o => o.saju).length}일${hasW ? ` · <b style="color:#e88fc0">✿ 서양합궁</b> ${days.filter(o => o.west).length}일 · <b style="color:var(--gold2)">둘 다</b> ${both.length}일` : ""}</div>
     ${pick.length ? pick.map(o => `<div class="rank-row" onclick="openDayModal(${o.x.date})"><span class="today-ilju">${fmtYMD(o.x.date)}</span><span class="today-date">${o.x.dayGZ.hanja}</span><span style="flex:1">${tag(o)}</span><b style="font-family:var(--serif);font-size:16px">${o.x.score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">향후 30일 안에 합궁일이 없습니다.</span></div>'}</div>`;
 }
 

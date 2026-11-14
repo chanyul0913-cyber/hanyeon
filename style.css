@@ -113,6 +113,10 @@ main { max-width: 1060px; margin: 0 auto; padding: 18px 16px 8px; }
 .day-cell .star { position: absolute; top: 4px; right: 6px; font-size: 11px; }
 .d-peak { background: linear-gradient(160deg, rgba(240,217,140,.14), rgba(240,217,140,.03)); border-color: rgba(240,217,140,.45); }
 .d-good { background: linear-gradient(160deg, rgba(95,185,138,.12), rgba(95,185,138,.02)); border-color: rgba(95,185,138,.35); }
+.d-west { background: linear-gradient(160deg, rgba(232,143,192,.14), rgba(232,143,192,.03)); border-color: rgba(232,143,192,.45); }
+.d-lotto { background: linear-gradient(160deg, rgba(90,180,232,.14), rgba(90,180,232,.03)); border-color: rgba(90,180,232,.45); }
+.b-west { color: #e88fc0; border-color: rgba(232,143,192,.5); background: rgba(232,143,192,.10); }
+.b-lotto { color: #5ab4e8; border-color: rgba(90,180,232,.5); background: rgba(90,180,232,.10); }
 .d-care { background: linear-gradient(160deg, rgba(226,161,92,.12), rgba(226,161,92,.02)); border-color: rgba(226,161,92,.35); }
 .d-bad { background: linear-gradient(160deg, rgba(226,101,92,.13), rgba(226,101,92,.02)); border-color: rgba(226,101,92,.4); }
 .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--sub); margin: 10px 0 2px; }
