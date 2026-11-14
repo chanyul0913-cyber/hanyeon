@@ -20,12 +20,12 @@ function renderDaily() {
   for (let d = 1; d <= daysIn; d++) {
     const r = data[d - 1];
     const dimmed = !(show.peak && r.grade.k === "peak") && !(show.herStrong && r.flags.herStrong);
-    const star = r.grade.k === "peak" ? '<span class="star">⭐</span>' : r.flags.tension || r.flow.warn ? '<span class="star">⚠</span>' : "";
-    cells += `<div class="day-cell ${r.grade.k === "peak" ? "d-peak" : r.grade.k === "good" ? "d-good" : r.grade.k === "normal" ? "" : r.grade.k === "care" ? "d-care" : "d-bad"} ${dimmed ? "dim" : ""}"
+    const isPeak = r.grade.k === "peak", star = isPeak ? '<span class="star">⭐</span>' : "";
+    cells += `<div class="day-cell ${isPeak ? "d-peak" : r.flags.herStrong ? "d-good" : ""} ${dimmed ? "dim" : ""}"
       onclick="openDayModal(${r.date})">
       ${star}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
-      <div class="dc-score" style="color:${r.score >= 82 ? "var(--peak)" : r.score >= 68 ? "var(--good)" : r.score >= 52 ? "var(--ink)" : r.score >= 38 ? "var(--care)" : "var(--bad)"}">${r.score}</div>
-      <div class="dc-flow">${r.flow.yongsin ? "✧ " : ""}${r.flow.icon} ${esc(r.flow.label)}${r.flags.love ? " ♥" : ""}${r.flags.herStrong ? " ✿" : ""}</div>
+      <div class="dc-score" style="color:${isPeak ? "var(--peak)" : r.flags.herStrong ? "var(--good)" : "var(--ink)"}">${r.score}</div>
+      <div class="dc-flow">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div>
       <div class="dc-day">${r.dayGZ.hanja}</div></div>`;
   }
   const tail = (7 - (lead + daysIn) % 7) % 7;
@@ -33,12 +33,10 @@ function renderDaily() {
   $("calGrid").innerHTML = cells;
 
   // 범례
-  $("calLegend").innerHTML = `<span><i class="d-peak" style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>속궁합 최고(82+)</span>
-    <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>좋음(68~)</span>
-    <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>보통</span>
-    <span><i style="background:rgba(226,161,92,.12);border:1px solid rgba(226,161,92,.35)"></i>주의</span>
-    <span><i style="background:rgba(226,101,92,.13);border:1px solid rgba(226,101,92,.4)"></i>긴장</span>
-    <span>→ 나→그녀(생: 상대를 채움) · ← 그녀→나(생) · →(부담): 기운은 가지만 극으로 닿음 · ✧ 용신 전달 · ✿ 합궁(그날이 그녀를 生하거나 같은 오행 — 그녀 컨디션 좋은 날) · ♥ 애정 · ⭐ 피크 · ⚠ 충·형</span>`;
+  $("calLegend").innerHTML = `<span><i style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>⭐ 피크 — 속궁합 최고(82점 이상)</span>
+    <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁 — 그날 기운이 그녀를 生하거나 같은 오행(그녀가 덜 지치는 날)</span>
+    <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>그 외 날</span>
+    <span>숫자 = 그날의 속궁합 점수(0~100) · 피크이면서 합궁인 날은 금색 칸에 ✿ 표시</span>`;
 
   // 이달 요약 — 피크 TOP 3 + 합방합궁(✿ 그녀 컨디션 좋은 날)
   const peaks = [...data].sort((a, b) => b.score - a.score).slice(0, 3);
