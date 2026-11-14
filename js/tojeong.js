@@ -148,11 +148,42 @@ const TJ_TEXT = `111|東風解氷 枯木逢春|동풍해빙 고목봉춘|길|봄
 863|東風淡蕩 春花富貴|동풍담탕 춘화부귀|길|봄바람이 화창하고 봄꽃이 부귀롭다. 재물과 영화가 따른다.`;
 const TJ = Object.fromEntries(TJ_TEXT.split("\n").map(l => { const [k, h, r, g, x] = l.split("|"); return [+k, { h, r, g, x }]; }));
 
+// 월별 풀이 — 원전의 월별 구절이 아니라, 올해 괘의 길흉 + 그달 월운(십신·일지 합충·재물/애정 ★)으로 만든 자체 해석
+const TJ_MONTH_SS = {
+  비견: "동료·친구와 어울리는 달. 힘을 모으면 든든하지만 경쟁도 생긴다.",
+  겁재: "지출과 경쟁이 늘어나는 달. 돈 거래와 보증은 피하는 것이 좋다.",
+  식신: "먹고 즐기는 복이 있는 달. 재능을 펼치면 결과가 따른다.",
+  상관: "말과 표현이 많아지는 달. 구설과 윗사람과의 마찰을 조심.",
+  편재: "뜻밖의 재물과 기회가 오는 달. 활동 범위를 넓히면 이롭다.",
+  정재: "성실한 만큼 재물이 쌓이는 달. 계획한 일이 착실히 이루어진다.",
+  편관: "압박과 책임이 커지는 달. 무리한 일정과 건강을 조심.",
+  정관: "인정과 명예가 따르는 달. 원칙을 지키면 평가가 오른다.",
+  편인: "생각이 많아지고 공부·기술에 좋은 달. 큰 결정은 신중히.",
+  정인: "도움과 문서운이 있는 달. 윗사람과 가족의 지지를 받는다."
+};
+const TJ_MONTH_REL = { 육합: "가까운 사람과 마음이 잘 맞는다.", 삼합: "주변과 힘을 합치면 일이 커진다.", 충: "이동이나 변화가 생기고 다툼이 일기 쉽다.", 형: "예민해지기 쉬우니 말을 아낄 것.", 원진: "사소한 오해로 서운함이 생기기 쉽다.", 해: "작은 방해가 끼어들 수 있다.", 파: "약속이 어긋나기 쉬우니 한 번 더 확인할 것." };
+function tjMonths(p, isMale, Y, yearG) {
+  const out = [];
+  for (let m = 1; m <= 12; m++) {
+    const L = monthlyLuck(p, isMale, Y, m), rel = zaRel(JI_K[p.dmJi], JI_K[L.gz.ji]);
+    const ssTone = ["정재", "편재", "식신", "정관", "정인"].includes(L.sg) ? 0.5 : ["겁재", "상관", "편관"].includes(L.sg) ? -0.75 : 0; // 그달 천간 십신의 길흉
+    const v = (L.wealth + L.love) / 2 + ssTone + (yearG === "길" ? 0.5 : yearG === "흉" ? -0.5 : 0) + (rel === "육합" || rel === "삼합" ? 0.5 : rel === "충" ? -1 : 0);
+    const g = v >= 3.5 ? "길" : v >= 2.5 ? "평" : "흉";
+    const tail = [L.wealth >= 4 ? "재물운이 좋다." : L.wealth <= 1 ? "돈 관리에 신경 쓸 것." : "",
+      L.love >= 4 ? "애정운이 밝다." : L.love <= 1 ? "연인과의 감정 소모를 줄일 것." : ""].filter(Boolean).join(" ");
+    out.push({ m, g, gz: L.gz, text: [TJ_MONTH_SS[L.sg], rel ? TJ_MONTH_REL[rel] : "", tail].filter(Boolean).join(" ") });
+  }
+  return out;
+}
+
 function renderTojeong() {
   const Y = ST.fYear;
   $("tjTitle").textContent = `${Y}년`;
-  const card = (p, label) => {
+  const now = new Date();
+  const card = (p, label, isMale) => {
     const t = tojeong(p, Y), d = TJ[t.gwae];
+    const gc = g => g === "길" ? "var(--good)" : g === "흉" ? "var(--bad)" : "var(--sub)";
+    const months = tjMonths(p, isMale, Y, d.g).map(x => `<div class="reason" style="${Y === now.getFullYear() && x.m === now.getMonth() + 1 ? "border-color:var(--gold)" : ""}"><span class="rt">${x.m}월 <small style="color:var(--sub)">${x.gz.hanja}</small></span><span class="rs" style="color:${gc(x.g)}">${x.g}</span><div class="rx">${esc(x.text)}</div></div>`).join("");
     const cls = d.g === "길" ? "b-charge" : d.g === "흉" ? "b-tension" : "b-neutral";
     return `<div class="card ${d.g === "길" ? "gold" : ""}"><div class="sec-t">${esc(p.name)} <small>(${label})</small></div>
       <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
@@ -164,8 +195,9 @@ function renderTojeong() {
         <tr><td>상괘 ${t.up}</td><td>(세는나이 ${t.age} + 태세수 ${t.tY} [${t.yearGZ}년]) ÷ 8의 나머지</td></tr>
         <tr><td>중괘 ${t.mid}</td><td>(음력 ${t.bm}월 날수 ${t.mlen}일 + 월건수 ${t.tM} [${t.mGZ}월]) ÷ 6의 나머지</td></tr>
         <tr><td>하괘 ${t.low}</td><td>(음력 생일 ${t.bd}일 + 일진수 ${t.tD} [${t.dGZ}일]) ÷ 3의 나머지</td></tr>
-      </table></div>`;
+      </table>
+      <details style="margin-top:10px" open><summary style="cursor:pointer;font-weight:700">월별 풀이 (1~12월)</summary>${months}</details></div>`;
   };
-  $("tjBody").innerHTML = `<div class="grid2">${card(ST.p1, "나")}${card(ST.p2, "그녀")}</div>
-    <div style="font-size:12px;color:var(--sub);margin-top:4px">괘 원문(한자)은 전래 토정비결 144괘, 풀이 문장은 이 사이트가 원문 뜻을 요약한 것입니다. 태세·월건·일진수는 공개 조견표에서 역산한 값이라 책·사이트마다 괘가 다를 수 있습니다.</div>`;
+  $("tjBody").innerHTML = `<div class="grid2">${card(ST.p1, "나", true)}${card(ST.p2, "그녀", false)}</div>
+    <div style="font-size:12px;color:var(--sub);margin-top:4px">괘 원문(한자)은 전래 토정비결 144괘, 풀이 문장은 이 사이트가 원문 뜻을 요약한 것입니다. 월별 풀이는 원전의 월별 구절이 아니라 올해 괘의 길흉과 그달 월운(절기월 기준)을 합쳐 만든 해석입니다. 태세·월건·일진수는 공개 조견표에서 역산한 값이라 책·사이트마다 괘가 다를 수 있습니다.</div>`;
 }
