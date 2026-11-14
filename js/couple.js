@@ -26,12 +26,10 @@ function renderCouple() {
   }
   const days = YEAR_CACHE.days;
   const cnt = f => days.filter(f).length;
-  const hapGan = [...GAN_K].filter((g, i) => GAN_OH[i] === p2.dmOh || GAN_OH[i] === ohGenMe(p2.dmOh)).join("·");
   const best = days.filter(o => o.sPeak && (o.sHap || o.wHap)).slice(0, 5);
   const fallback = best.length ? best : days.filter(o => o.sHap && o.wHap).sort((a, b) => b.r.score - a.r.score).slice(0, 5).sort((a, b) => a.r.date - b.r.date);
   const stat = (label, v) => `<tr><td>${label}</td><td><b>${v}일</b></td></tr>`;
   $("couplePeak").innerHTML = `<div class="card"><div class="sec-t">피크 · 합궁 <small>(향후 1년)</small></div>
-    <div style="font-size:13.5px;margin-bottom:8px">합궁 = <b style="color:${OH_COLOR[ohGenMe(p2.dmOh)]}">${ohGenMe(p2.dmOh)}</b>·<b style="color:${OH_COLOR[p2.dmOh]}">${p2.dmOh}</b>의 날 (${hapGan}일)</div>
     <table class="mini-tbl">${stat("⭐ 사주 피크", cnt(o => o.sPeak))}${stat("✿ 합궁", cnt(o => o.sHap))}${hasW ? stat("⭐ 서양 피크", cnt(o => o.wPeak)) + stat("✿ 서양합궁", cnt(o => o.wHap)) + stat("✿ 합궁·서양합궁 둘 다", cnt(o => o.sHap && o.wHap)) : ""}${stat("⭐✿ 피크이면서 합궁", cnt(o => o.sPeak && (o.sHap || o.wHap)))}</table>
     <div class="sec-t" style="margin-top:12px">${best.length ? "피크이면서 합궁인 날" : "합궁·서양합궁 둘 다인 날"}</div>
     ${fallback.length ? fallback.map(o => `<div class="rank-row" onclick="openDayModal(${o.r.date})"><span class="today-ilju">${fmtYMD(o.r.date)}</span><span class="today-date">${o.r.dayGZ.hanja}</span><span style="flex:1">${peakBadge(o.sPeak, o.sHap, o.wHap)}</span><b style="font-family:var(--serif);font-size:16px">${o.r.score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">향후 1년 안에 해당하는 날이 없습니다.</span></div>'}</div>`;
