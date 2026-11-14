@@ -52,8 +52,8 @@ const DOWHWA = { 신: "유", 자: "유", 진: "유", 인: "묘", 오: "묘", 술
 const YEOKMA = { 신: "인", 자: "인", 진: "인", 인: "신", 오: "신", 술: "신", 사: "해", 유: "해", 축: "해", 해: "사", 묘: "사", 미: "사" };
 const HWAGAE  = { 신: "진", 자: "진", 진: "진", 인: "술", 오: "술", 술: "술", 사: "축", 유: "축", 축: "축", 해: "미", 묘: "미", 미: "미" };
 const CHEONEUL = { 0: ["축", "미"], 4: ["축", "미"], 6: ["축", "미"], 1: ["자", "신"], 5: ["자", "신"], 2: ["해", "유"], 3: ["해", "유"], 8: ["사", "묘"], 9: ["사", "묘"], 7: ["오", "인"] };
-function shinsalOf(dmGan, dmJi, dayJi) {
-  const out = [];
+function shinsalOf(dmGan, dmJiIdx, dayJiIdx) { // 지지는 인덱스로 받아 표(한글 키)에 맞게 변환
+  const out = [], dmJi = JI_K[dmJiIdx], dayJi = JI_K[dayJiIdx];
   if (DOWHWA[dmJi] === dayJi) out.push({ name: "도화살", desc: "매력과 끌림이 살아나는 날" });
   if (YEOKMA[dmJi] === dayJi) out.push({ name: "역마살", desc: "움직임·외출·여행에 좋은 날" });
   if (HWAGAE[dmJi] === dayJi) out.push({ name: "화개살", desc: "혼자만의 시간과 취미가 맞는 날" });
@@ -243,8 +243,8 @@ function coupleFixed(p1, p2) {
   if (p1Max === p2Lack && p1Lack !== p2Lack) { score += 10; parts.push({ t: "오행 보완 — 내가 그녀를 채움", v: `그녀의 부족 ${p2Lack} ← 나의 다수 ${p1Max}`, s: 10, x: `그녀 사주에 부족한 ${p2Lack} 오행이 나에게 많습니다. 내가 곁에 있으면 그녀의 균형이 잡히는 구조입니다.` }); }
 
   // 도화 — 상대 일지가 내 도화지인가 (끌림)
-  if (DOWHWA[p1.dmJi] === p2.dmJi) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "그녀의 일지가 내 도화지", s: 10, x: "그녀의 일지가 내 도화(桃花) 자리 — 본능적인 끌림과 매력을 느끼는 인연입니다." }); }
-  if (DOWHWA[p2.dmJi] === p1.dmJi) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "내 일지가 그녀의 도화지", s: 10, x: "내 일지가 그녀의 도화(桃花) 자리 — 그녀가 나에게 끌리는 인연입니다." }); }
+  if (DOWHWA[JI_K[p1.dmJi]] === JI_K[p2.dmJi]) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "그녀의 일지가 내 도화지", s: 10, x: "그녀의 일지가 내 도화(桃花) 자리 — 본능적인 끌림과 매력을 느끼는 인연입니다." }); }
+  if (DOWHWA[JI_K[p2.dmJi]] === JI_K[p1.dmJi]) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "내 일지가 그녀의 도화지", s: 10, x: "내 일지가 그녀의 도화(桃花) 자리 — 그녀가 나에게 끌리는 인연입니다." }); }
 
   // 12운성 — 내 일간 기준 그녀 일지의 운성
   const ws = woonseong(p1.dmGan, p2.dmJi);
@@ -254,6 +254,59 @@ function coupleFixed(p1, p2) {
   score = Math.max(0, Math.min(100, Math.round(score)));
   const grade = score >= 82 ? "최고 인연" : score >= 68 ? "좋은 인연" : score >= 52 ? "무난한 인연" : score >= 38 ? "노력이 필요한 인연" : "서로를 배우는 인연";
   return { score, grade, parts };
+}
+
+// ---------- 월별 재물운·애정운 (월운) ----------
+// AI로또 fortune.js(SAJOO 방식)의 십신 점수를 월주(月柱)에 적용한다. 월주는 양력 m월 15일이 속한 절기월.
+const JI_MAIN = [9, 5, 0, 1, 4, 2, 3, 5, 6, 7, 4, 8]; // 지지 본기 천간(자=계 축=기 인=갑 …)
+function getMonthGZ(y, m) {
+  const gz = Solar.fromYmd(y, m, 15).getLunar().getMonthInGanZhiExact();
+  const gan = GAN.indexOf(gz[0]), ji = JI.indexOf(gz[1]);
+  return { gan, ji, hanja: gz, ilju: GAN_K[gan] + JI_K[ji] };
+}
+const luckStars = raw => Math.max(1, Math.min(5, 2 + Math.round(raw / 1.5))); // 원점수 → ★1~5
+// isMale: 남자는 재성, 여자는 관성을 애정 오행으로 본다
+function monthlyLuck(p, isMale, y, m) {
+  const g = getMonthGZ(y, m);
+  const sg = shiShen(p.dmGan, g.gan), bg = shiShen(p.dmGan, JI_MAIN[g.ji]);
+  const rel = zaRel(JI_K[p.dmJi], JI_K[g.ji]), hap = isGanHap(p.dmGan, g.gan);
+  const yong = GAN_OH[g.gan] === p.yongsin || JI_OH[g.ji] === p.yongsin;
+  const pts = (x, a, b) => (x === a ? 2 : x === b ? 1 : 0);
+  const wTags = [], lTags = [];
+  // 재물: 재성(정재2·편재1) 천간+지지, 식신 생재 +1, 겁재 −1(재물 다툼), 일지 육합·삼합 +1, 용신 +1, 일지 충 −1
+  let w = pts(sg, "정재", "편재") + pts(bg, "정재", "편재");
+  if (w) wTags.push("재성월");
+  if (sg === "식신" || bg === "식신") { w += 1; wTags.push("식신생재"); }
+  if (sg === "겁재" || bg === "겁재") { w -= 1; wTags.push("겁재(지출)"); }
+  if (rel === "육합" || rel === "삼합") { w += 1; wTags.push(`일지 ${rel}`); }
+  if (rel === "충") { w -= 1; wTags.push("일지 충"); }
+  if (yong) { w += 1; wTags.push("용신월"); }
+  // 애정: 남=재성 / 여=관성(정2·편1), 도화월 +2, 일지 육합·삼합 +1, 천간합 +1, 일지 충 −2
+  let l = isMale ? pts(sg, "정재", "편재") + pts(bg, "정재", "편재") : pts(sg, "정관", "편관") + pts(bg, "정관", "편관");
+  if (l) lTags.push(isMale ? "재성(이성)월" : "관성(이성)월");
+  if (DOWHWA[JI_K[p.dmJi]] === JI_K[g.ji]) { l += 2; lTags.push("도화월"); }
+  if (rel === "육합" || rel === "삼합") { l += 1; lTags.push(`일지 ${rel}`); }
+  if (hap) { l += 1; lTags.push("천간합"); }
+  if (rel === "충") { l -= 2; lTags.push("일지 충"); }
+  return { m, gz: g, sg, bg, wealth: luckStars(w), love: luckStars(l), wTags, lTags };
+}
+
+// ---------- 토정비결 괘 ----------
+// 간지수 = 천간 선천수(갑기9 을경8 병신7 정임6 무계5) + 지지수 — 태세수·월건수·일진수가 같은 표를 쓴다.
+// 지지수는 공개 조견표(갑자20·경자19 등 30개 값)에서 역산: 29/30 일치.
+const TJ_GAN = [9, 8, 7, 6, 5, 9, 8, 7, 6, 5], TJ_JI = [11, 12, 10, 10, 13, 9, 9, 13, 12, 12, 13, 11];
+const tjNum = gz => TJ_GAN[GAN.indexOf(gz[0])] + TJ_JI[JI.indexOf(gz[1])];
+// p: calcPerson 결과, Y: 보고 싶은 해. 음력 생일(그해) 기준, 나이는 세는나이, 나머지 0 → 8·6·3
+function tojeong(p, Y) {
+  const [sy, sm, sd] = p.solarYmd.split("-").map(Number);
+  const B = Solar.fromYmd(sy, sm, sd).getLunar(), bm = Math.abs(B.getMonth()), bd = B.getDay();
+  const age = Y - B.getYear() + 1;
+  const yearGZ = Lunar.fromYmd(Y, 1, 1).getYearInGanZhi();
+  const mlen = LunarYear.fromYear(Y).getMonth(bm).getDayCount();
+  const ML = Lunar.fromYmd(Y, bm, Math.min(bd, mlen));
+  const mGZ = ML.getMonthInGanZhi(), dGZ = ML.getDayInGanZhi();
+  const up = (age + tjNum(yearGZ)) % 8 || 8, mid = (mlen + tjNum(mGZ)) % 6 || 6, low = (bd + tjNum(dGZ)) % 3 || 3;
+  return { gwae: up * 100 + mid * 10 + low, up, mid, low, age, bm, bd, mlen, yearGZ, mGZ, dGZ, tY: tjNum(yearGZ), tM: tjNum(mGZ), tD: tjNum(dGZ) };
 }
 
 // ---------- 별자리 (서양 점성술 태양 별자리) ----------

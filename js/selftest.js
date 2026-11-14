@@ -84,6 +84,21 @@ async function selfTest() {
   const fc = coupleFixed(fk1, fk2);
   ok(fc.score >= 0 && fc.score <= 100);
 
+  // 10-4) 신살 — 일지 자(子)의 도화는 유(酉), 갑 일간 천을귀인은 축·미 (인덱스 입력)
+  ok(shinsalOf(0, 0, 9).some(x => x.name === "도화살"));
+  ok(shinsalOf(0, 0, 1).some(x => x.name === "천을귀인"));
+
+  // 10-5) 월운 — 범위, 2026년 월건(양력 2월 15일 = 경인월)
+  eq(getMonthGZ(2026, 2).hanja, "庚寅", "2026-02월건");
+  for (let m = 1; m <= 12; m++) { const L = monthlyLuck(p1, true, 2026, m); ok(L.wealth >= 1 && L.wealth <= 5 && L.love >= 1 && L.love <= 5); }
+
+  // 10-6) 토정비결 — 공개 조견표 값(갑자20·경자19·병오16), 괘 범위, 낭월 예시(64세+경자년 → 상괘 3)
+  eq(tjNum("甲子"), 20, "태세수갑자"); eq(tjNum("庚子"), 19, "태세수경자"); eq(tjNum("丙午"), 16, "태세수병오");
+  eq((64 + tjNum("庚子")) % 8 || 8, 3, "낭월예시상괘");
+  const tj = tojeong(p1, 2026);
+  ok(tj.up >= 1 && tj.up <= 8 && tj.mid >= 1 && tj.mid <= 6 && tj.low >= 1 && tj.low <= 3);
+  if (typeof TJ === "object") { eq(Object.keys(TJ).length, 144, "토정144괘"); ok(TJ[tj.gwae]); }
+
   // 11) 별자리 경계
   eq(zodiacSign(2000, 1, 5).name, "염소자리", "별자리염소");
   eq(zodiacSign(2000, 3, 22).name, "양자리", "별자리양");

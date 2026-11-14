@@ -18,6 +18,9 @@
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
 | `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크·합궁·일 상세 모달) | |
 | `js/western.js` | 서양 점성술 synastry (행성 아스펙트, astronomy-engine 있을 때만) | |
+| `js/luck.js` | 재물·애정운 탭 (두 사람 12개월 월운 ★, 계산은 engine.js `monthlyLuck`) | |
+| `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
+| `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 
 ## 규칙

@@ -143,13 +143,16 @@ function switchTab(name) {
 function renderAll(only) {
   if (!ST.p1 || !ST.p2) { openSettings(); return; }
   const t = today();
-  ST.calYear = ST.calYear || t.getFullYear(); ST.calMonth = ST.calMonth || (t.getMonth() + 1);
+  ST.calYear = ST.calYear || t.getFullYear(); ST.fYear = ST.fYear || t.getFullYear(); ST.calMonth = ST.calMonth || (t.getMonth() + 1);
   try {
     renderHome();
     if (!only || only === "myeongban") renderMyeongban();
     if (!only || only === "couple") renderCouple();
     if (!only || only === "daily") renderDaily();
     if (!only || only === "western") renderWestern();
+    if (!only || only === "luck") renderLuck();
+    if (!only || only === "tojeong") renderTojeong();
+    if (!only || only === "tarot") renderTarot();
   } catch (e) { console.error(e); }
 }
 
@@ -259,6 +262,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
+  $("luckPrev").onclick = $("tjPrev").onclick = () => { ST.fYear--; renderAll("luck"); renderAll("tojeong"); };
+  $("luckNext").onclick = $("tjNext").onclick = () => { ST.fYear++; renderAll("luck"); renderAll("tojeong"); };
   ["fPeak", "fHerStrong", "fWestHap"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
@@ -268,7 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try { ST.p1 = calcPerson(ST.profiles[0]); ST.p2 = calcPerson(ST.profiles[1]); }
     catch (e) { console.warn("저장된 프로필 계산 실패 — 다시 설정 필요", e); saveProfiles(null); ST.profiles = null; }
   }
-  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western)$/);
+  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western|luck|tojeong|tarot)$/);
   if (hashTab) switchTab(hashTab[1]);
   selfTest().catch(() => {});
 });
