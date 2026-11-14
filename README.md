@@ -34,9 +34,10 @@
 
 ## 개발·배포
 
+- 공개 주소: https://chanyul0913-cyber.github.io/hanyeon/ — https 환경에서 PWA·서비스 워커 자동 등록 (폰 홈 화면에 추가 가능)
 - 로컬 확인: `python -m http.server 8890` → http://localhost:8890
 - 자가 점검: 개발자 콘솔 `await selfTest()` → `ok: true`
-- 배포: GitHub Pages(예: https://아이디.github.io/hanyeon/) — https 환경에서 PWA·서비스 워커 자동 등록
+- 배포: main 브랜치 push → GitHub Pages 자동 배포 (반영 최대 수분 지연)
 
 ## 유의
 

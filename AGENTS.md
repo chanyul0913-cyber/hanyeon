@@ -3,6 +3,9 @@
 두 사람(남자=본인, 여자=상대)의 사주(四柱八字)를 계산해 **일주 기준 일별 속궁합·기의 흐름**을 보여 주는 비공개 정적 사이트.
 `D:\AI로또` 사이트(luckylab)와 같은 구조·방식: 정적 HTML+CSS+JS, 로컬 라이브러리, PWA.
 
+- 공개 주소: https://chanyul0913-cyber.github.io/hanyeon/
+- 저장소: https://github.com/chanyul0913-cyber/hanyeon (main 브랜치, push하면 Pages 바로 배포)
+
 ## 파일 구조
 
 | 파일 | 역할 | 수정 금지 |
