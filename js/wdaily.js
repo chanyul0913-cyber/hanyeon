@@ -20,39 +20,36 @@ function renderWdaily() {
   let cells = dowK.map((k, i) => `<div class="dow ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${k}</div>`).join("");
   for (let i = 0; i < lead; i++) cells += `<div class="day-cell dim"></div>`;
   const t0 = new Date(), todayN = ymdOf(new Date(t0.getFullYear(), t0.getMonth(), t0.getDate()));
+  const show = { peak: $("wPeak").checked, herStrong: $("wHerStrong").checked };
   for (let d = 1; d <= daysIn; d++) {
     const r = data[d - 1];
-    const star = r.grade.k === "peak" ? '<span class="star">⭐</span>' : r.flow.warn ? '<span class="star">⚠</span>' : "";
-    cells += `<div class="day-cell ${r.grade.k === "peak" ? "d-peak" : r.grade.k === "good" ? "d-good" : r.grade.k === "normal" ? "" : r.grade.k === "care" ? "d-care" : "d-bad"}"
+    const isPeak = r.grade.k === "peak";
+    const dimmed = !(show.peak && isPeak) && !(show.herStrong && r.herStrong);
+    cells += `<div class="day-cell ${isPeak ? "d-peak" : r.herStrong ? "d-good" : ""} ${dimmed ? "dim" : ""}"
       onclick="openWestDayModal(${r.date})">
-      ${star}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
-      <div class="dc-score" style="color:${r.score >= 82 ? "var(--peak)" : r.score >= 68 ? "var(--good)" : r.score >= 52 ? "var(--ink)" : r.score >= 38 ? "var(--care)" : "var(--bad)"}">${r.score}</div>
-      <div class="dc-flow">${r.flow.icon} ${esc(r.flow.label)}</div>
+      ${isPeak ? '<span class="star">⭐</span>' : ""}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
+      <div class="dc-score" style="color:${isPeak ? "var(--peak)" : r.herStrong ? "var(--good)" : "var(--ink)"}">${r.score}</div>
+      <div class="dc-flow">${r.herStrong ? "✿ 합궁" : "&nbsp;"}</div>
       <div class="dc-day">☾ ${r.moon ? esc(r.moon.sign.replace("자리", "")) : ""}</div></div>`;
   }
   const tail = (7 - (lead + daysIn) % 7) % 7;
   for (let i = 0; i < tail; i++) cells += `<div class="day-cell dim"></div>`;
   $("wCalGrid").innerHTML = cells;
 
-  $("wCalLegend").innerHTML = `<span><i class="d-peak" style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>서양 궁합 최고(82+)</span>
-    <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>좋음(68~)</span>
-    <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>보통</span>
-    <span><i style="background:rgba(226,161,92,.12);border:1px solid rgba(226,161,92,.35)"></i>주의</span>
-    <span><i style="background:rgba(226,101,92,.13);border:1px solid rgba(226,101,92,.4)"></i>긴장</span>
-    <span>☯ 두 사람 조화(같은 행성이 둘 다와 정확 조화각 ±2°) · ↑ 나/그녀 조화 · ⚠ 긴장 · ☾ = 오늘의 달 별자리</span>`;
+  $("wCalLegend").innerHTML = `<span><i style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>⭐ 피크 — 서양 궁합 최고(82점 이상)</span>
+    <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁 — 오늘의 달·금성이 그녀 차트와 조화각만 이루는 날(그녀가 덜 지치는 날)</span>
+    <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>그 외 날</span>
+    <span>숫자 = 그날의 서양 궁합 점수(0~100) · ☾ = 오늘의 달 별자리 · 피크이면서 합궁인 날은 금색 칸에 ✿ 표시</span>`;
 
   const peaks = [...data].sort((a, b) => b.score - a.score).slice(0, 3);
-  const syncDays = data.filter(x => x.flow.dir === "sync");
-  const loveDays = data.filter(x => x.reasons.some(q => q.t === "사랑의 조화 (금성)"));
-  const careDays = data.filter(x => ["care", "bad"].includes(x.grade.k));
-  const mkRow = (x, tag) => x ? `<div class="rank-row" onclick="openWestDayModal(${x.date})"><span class="rk">${tag}</span><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">☾ ${x.moon ? esc(x.moon.sign) : ""}</span><span style="flex:1">${wFlowBadge(x)}</span><b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>` : "";
+  const hs = data.filter(x => x.herStrong);
+  const mkRow = (x, tag) => `<div class="rank-row" onclick="openWestDayModal(${x.date})"><span class="rk">${tag}</span><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">☾ ${x.moon ? esc(x.moon.sign) : ""}</span><span style="flex:1">${x.herStrong ? '<span class="badge b-charge">✿ 합궁</span>' : ""}</span><b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`;
   $("wDailySummary").innerHTML = `<div class="grid2">
-    <div class="card"><div class="sec-t">이달 서양 궁합 TOP 3</div>
+    <div class="card"><div class="sec-t">이달 서양 궁합 피크 TOP 3</div>
       ${peaks.map((x, i) => mkRow(x, i + 1)).join("")}</div>
-    <div class="card"><div class="sec-t">조화·사랑의 날 — 이달</div>
-      <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">☯ 두 사람 조화</b> ${syncDays.length}일 · <b style="color:var(--hwa)">사랑의 조화(금성)</b> ${loveDays.length}일 · 주의 ${careDays.length}일</div>
-      ${syncDays.slice(0, 5).map(x => mkRow(x, "☯")).join("") || '<div class="flow-item"><span class="fx">이 달에 두 사람 조화일이 없음</span></div>'}
-      ${loveDays.slice(0, 3).map(x => mkRow(x, "♥")).join("")}</div>
+    <div class="card"><div class="sec-t">합방합궁 — 이달</div>
+      <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 합궁</b> ${hs.length}일 <span style="color:var(--sub)">(오늘의 달·금성이 그녀 차트와 조화각만 — 그녀가 덜 지치는 날)</span></div>
+      ${hs.map(x => mkRow(x, "✿")).join("") || '<div class="flow-item"><span class="fx">이 달에 없음</span></div>'}</div>
   </div>`;
 }
 

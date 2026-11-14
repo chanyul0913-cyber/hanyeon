@@ -128,6 +128,8 @@ async function selfTest() {
       const r = dailyWestSync(p1, p2, d);
       ok(r.score >= 0 && r.score <= 100 && r.grade && r.flow && r.moon);
       if (r.flow.dir === "sync") wSync++;
+      const mv = r.aspects.filter(x => x.who === 2 && ["Moon", "Venus"].includes(x.t.key));
+      eq(r.herStrong, mv.some(x => x.a.s > 0) && !mv.some(x => x.a.s < 0), "서양합궁" + r.date);
       d = addDays(d, 1);
     }
     ok(wSync > 0);

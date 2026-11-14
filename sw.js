@@ -1,6 +1,6 @@
 // 합연 — 서비스 워커: 로컬 자산 캐시(오프라인 사용). https 배포 환경에서만 등록됨(app.js와 달리 여기서 자체 등록).
 "use strict";
-const CACHE = "hanyeon-v5";
+const CACHE = "hanyeon-v6";
 const ASSETS = [
   "./", "index.html", "style.css", "manifest.webmanifest", "icon.svg",
   "js/app.js", "js/chart.js", "js/couple.js", "js/daily.js", "js/wdaily.js", "js/western.js", "js/engine.js", "js/selftest.js",
