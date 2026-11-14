@@ -1,6 +1,6 @@
 "use strict";
 // 합연 — 타로 탭: 메이저 아르카나 22장 중 3장(과거·현재·미래)을 뽑아 '나를 향한 상대의 마음'을 읽는다.
-// 방향 선택: 그녀→나(내가 뽑아 그녀 마음 보기) / 나→그녀(그녀가 뽑아 내 마음 보기). 카드 뜻은 주어 없이 써서 양방향 공용.
+// 방향 선택: 여자의 마음(남자가 뽑기) / 남자의 마음(여자가 뽑기). 카드 뜻은 주어 없이 써서 양방향 공용.
 // 카드 뜻은 일반적으로 알려진 메이저 아르카나 의미를 연애 질문에 맞게 이 사이트가 정리한 것. 사주 계산과 무관.
 // [번호, 이름, 영문, 기호, 정방향 뜻, 역방향 뜻, 정방향 톤, 역방향 톤] — 톤: 1 긍정 · 0 복합 · -1 주의
 const TAROT = [
@@ -40,13 +40,13 @@ function drawTarot() {
 function setTarotDir(k) { ST.tarotDir = k; ST.tarot = null; renderTarot(); } // 질문이 바뀌면 새로 뽑기
 
 function renderTarot() {
-  const her = ST.tarotDir === "me" ? "그" : "그녀"; // 마음의 주인 — 이름 뒤 조사 문제를 피하려 호칭 사용
+  const her = ST.tarotDir === "me" ? "남자" : "여자", me = ST.tarotDir === "me" ? "여자" : "남자"; // 마음의 주인·받는 사람 — 설정 칸(남자·여자) 기준
   const dirBtn = (k, label) => `<button onclick="setTarotDir('${k}')" style="${(ST.tarotDir || "her") === k ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}">${label}</button>`;
   const head = `<div class="chips" style="justify-content:center;margin-bottom:12px"><span style="color:var(--sub);font-size:13px">누구의 마음을 볼까요?</span>
-    ${dirBtn("her", "그녀의 마음 (내가 뽑을 때)")}${dirBtn("me", "그의 마음 (그녀가 뽑을 때)")}</div>`;
+    ${dirBtn("her", "여자의 마음 (남자가 뽑을 때)")}${dirBtn("me", "남자의 마음 (여자가 뽑을 때)")}</div>`;
   if (!ST.tarot) {
     $("tarotBody").innerHTML = head + `<div class="card gold" style="text-align:center"><div class="sec-t" style="justify-content:center">${her}의 마음 — 타로 3장</div>
-      <div style="color:var(--sub);margin:6px 0 14px">마음속으로 ${her}를 떠올리고 카드를 뽑으세요. 과거 · 현재 · 미래 세 장으로 나를 향한 마음을 읽습니다.</div>
+      <div style="color:var(--sub);margin:6px 0 14px">마음속으로 ${her}를 떠올리고 카드를 뽑으세요. 과거 · 현재 · 미래 세 장으로 ${me}를 향한 마음을 읽습니다.</div>
       <button onclick="drawTarot()" style="font-size:16px;padding:10px 22px">🃏 카드 3장 뽑기</button></div>`;
     return;
   }
@@ -63,7 +63,7 @@ function renderTarot() {
       <b style="font-family:var(--serif);font-size:18px">${c.t[0]}. ${c.t[1]}</b><div style="font-size:12px;color:var(--sub)">${c.t[2]} · ${c.rev ? "역방향" : "정방향"}</div>
       <div class="reason" style="text-align:left;margin-top:10px">${esc(c.text)}</div></div>`).join("")}
   </div>
-  <div class="card"><div class="sec-t">종합 — 나를 향한 ${her}의 마음</div><div class="reason">${esc(verdict)}</div>
+  <div class="card"><div class="sec-t">종합 — ${me}를 향한 ${her}의 마음</div><div class="reason">${esc(verdict)}</div>
     <div style="margin-top:12px;text-align:center"><button onclick="drawTarot()">🔄 다시 뽑기</button></div>
     <div style="font-size:12px;color:var(--sub);margin-top:8px">타로는 마음을 돌아보는 재미용 점입니다. 실제 마음은 대화로 확인하세요.</div></div>`;
 }

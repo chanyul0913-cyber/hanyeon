@@ -225,8 +225,8 @@ function openDayModal(ymd) {
     <div class="modal-hd"><b>${ymdStr(ymd)} (${dowK[d.getDay()]}) — ${r.dayGZ.hanja}일 (${r.dayGZ.ilju})</b><button class="modal-x" data-close>✕</button></div>
     <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong, w && w.herStrong, r.flags.danger)}${lottoBadge(L1, L2)}
       <table class="mini-tbl" style="margin-top:10px">
-        <tr><td>나에게 오는 기운</td><td>${esc(ss1.십신)} · ${esc(ss1.운성)}운</td></tr>
-        <tr><td>그녀에게 오는 기운</td><td>${esc(ss2.십신)} · ${esc(ss2.운성)}운</td></tr>
+        <tr><td>남자에게 오는 기운</td><td>${esc(ss1.십신)} · ${esc(ss1.운성)}운</td></tr>
+        <tr><td>여자에게 오는 기운</td><td>${esc(ss2.십신)} · ${esc(ss2.운성)}운</td></tr>
         ${r.ss.length ? `<tr><td>신살</td><td>${r.ss.map(x => esc(`${x.who}: ${x.name}`)).join(" · ")}</td></tr>` : ""}
       </table></div></div>
     <div class="sec-t">점수 근거</div>${reasons || '<div class="reason">특별한 작용 없는 고요한 날</div>'}

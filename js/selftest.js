@@ -76,7 +76,7 @@ async function selfTest() {
   for (let i = 0; i < 200; i++) {
     const r = dailySync(fk1, fk2, d);
     if (r.flags.love) fLove++;
-    eq(!!r.flags.herStrong, ["토", "금"].includes(r.dayGZ.oh), "그녀합궁" + r.date);
+    eq(!!r.flags.herStrong, ["토", "금"].includes(r.dayGZ.oh), "여자합궁" + r.date);
     const chung = r.reasons.some(q => /일지와 충/.test(q.t)), keuk = r.reasons.some(q => /긴장 유입\(관살\)/.test(q.t));
     eq(r.flags.danger, chung && keuk, "최고위험" + r.date);
     if (r.flags.danger) fDanger++;

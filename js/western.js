@@ -134,10 +134,10 @@ function dailyWestSync(p1, p2, date) {
     : score >= 52 ? { k: "normal", label: "보통", stars: 1 }
     : score >= 38 ? { k: "care", label: "주의", stars: 0 }
     : { k: "bad", label: "긴장", stars: 0 };
-  // 합궁(✿) — 오늘의 달·금성이 그녀 출생 차트와 조화각만 있고 긴장각은 없는 날. 표시용, 점수 영향 없음
+  // 합궁(✿) — 오늘의 달·금성이 여자 출생 차트와 조화각만 있고 긴장각은 없는 날. 표시용, 점수 영향 없음
   const herMV = aspects.filter(x => x.who === 2 && (x.t.key === "Moon" || x.t.key === "Venus"));
   const herStrong = herMV.some(x => x.a.s > 0) && !herMV.some(x => x.a.s < 0);
-  if (herStrong) reasons.push({ t: "합궁일(✿)", s: 0, x: "오늘의 달(감정)·금성(애정)이 그녀의 출생 차트를 조화각으로만 비춤 — 그녀가 편안하고 덜 지치는 날" });
+  if (herStrong) reasons.push({ t: "합궁일(✿)", s: 0, x: "오늘의 달(감정)·금성(애정)이 여자의 출생 차트를 조화각으로만 비춤 — 그녀가 편안하고 덜 지치는 날" });
   return { date: ymdOf(date), dow: date.getDay(), score, grade, reasons, aspects, syncList, moon, herStrong };
 }
 

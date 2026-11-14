@@ -4,7 +4,7 @@
 // 서울은 동경 135° 표준시보다 실제 태양시가 약 30분 늦으므로 시주 경계에 30분 보정한다.
 // 속궁합 점수(0~100) = 애정 동조(재성·관성) + 천간합 + 지지 육합/삼합 − 충·형·원진·파·해
 //   + 오행 유입/극 + 용신(부족 오행) + 신살(도화·천을귀인).
-// 합궁(✿) = 그날 일간 오행이 그녀 일간을 生하거나 같은 오행인 날(+8). 일지 충은 −6.
+// 합궁(✿) = 그날 일간 오행이 여자 일간을 生하거나 같은 오행인 날(+8). 일지 충은 −6.
 
 // ---------- 기본 상수 ----------
 const GAN = "甲乙丙丁戊己庚辛壬癸", GAN_K = "갑을병정무기경신임계";
@@ -131,21 +131,21 @@ function getDayGZ(date) {
 // 두 사람(person) 사이에서 그 date의 궁합 상태를 계산한다.
 function dailySync(p1, p2, date) {
   const d = getDayGZ(date);
-  const mOh = p1.dmOh, fOh = p2.dmOh; // 나(M), 그녀(F)
+  const mOh = p1.dmOh, fOh = p2.dmOh; // 남자(M), 여자(F)
   const D = d.oh;
   const reasons = [];
   let score = 50;
   const flags = { tension: false, love: false, charm: false, herStrong: false, danger: false };
 
-  // 1) 애정 동조일 — 그날의 기가 '나의 재성(여자 운)'이면서 '그녀의 관성(남자 운)'인 날
-  if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = "mutual"; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 나의 재성이자 그녀의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
-  else if (D === p1.jaeOh) { score += 8; flags.love = "me"; reasons.push({ t: "나의 애정운(재성일)", s: +8, x: "그날의 기운이 나의 애정(재성)과 같은 오행 — 표현하고 주고 싶은 날" }); }
-  else if (D === p2.gwanOh) { score += 8; flags.love = "her"; reasons.push({ t: "그녀의 애정운(관성일)", s: +8, x: "그날의 기운이 그녀의 관성과 같은 오행 — 그녀에게 이끌리는 날" }); }
+  // 1) 애정 동조일 — 그날의 기가 '남자의 재성(여자 운)'이면서 '여자의 관성(남자 운)'인 날
+  if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = "mutual"; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 남자의 재성이자 여자의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
+  else if (D === p1.jaeOh) { score += 8; flags.love = "me"; reasons.push({ t: "남자의 애정운(재성일)", s: +8, x: "그날의 기운이 남자의 애정(재성)과 같은 오행 — 표현하고 주고 싶은 날" }); }
+  else if (D === p2.gwanOh) { score += 8; flags.love = "her"; reasons.push({ t: "여자의 애정운(관성일)", s: +8, x: "그날의 기운이 여자의 관성과 같은 오행 — 여자에게 이끌리는 날" }); }
 
   // 2) 천간합 — 그날 일간이 각자 일간과 합하는 날
   const h1 = ganHapWith(d.gan), h2 = ganHapWith(p1.dmGan), h3 = ganHapWith(p2.dmGan);
-  if (h1 && h1.with === p1.dmGan) { score += 10; reasons.push({ t: `나와 천간합(${h1.name})`, s: +10, x: "그날의 천간이 나의 일간과 합(合) — 마음이 닿는 날" }); }
-  if (h1 && h1.with === p2.dmGan) { score += 10; reasons.push({ t: `그녀와 천간합(${h1.name})`, s: +10, x: "그날의 천간이 그녀의 일간과 합(合) — 그녀가 마음을 열어 주는 날" }); }
+  if (h1 && h1.with === p1.dmGan) { score += 10; reasons.push({ t: `남자와 천간합(${h1.name})`, s: +10, x: "그날의 천간이 남자의 일간과 합(合) — 마음이 닿는 날" }); }
+  if (h1 && h1.with === p2.dmGan) { score += 10; reasons.push({ t: `여자와 천간합(${h1.name})`, s: +10, x: "그날의 천간이 여자의 일간과 합(合) — 여자가 마음을 열어 주는 날" }); }
 
   // 3) 지지 관계 — 그날 일지 vs 각자 일지
   const relOf = (who, myJi) => {
@@ -154,38 +154,38 @@ function dailySync(p1, p2, date) {
     const W = { 육합: 12, 삼합: 8, 충: -6, 형: -8, 해: -3, 원진: -6, 파: -3 };
     return { r, w: W[r] };
   };
-  const r1 = relOf("나", p1.dmJi), r2 = relOf("그녀", p2.dmJi);
-  for (const [rr, who] of [[r1, "나"], [r2, "그녀"]]) {
+  const r1 = relOf("남자", p1.dmJi), r2 = relOf("여자", p2.dmJi);
+  for (const [rr, who] of [[r1, "남자"], [r2, "여자"]]) {
     if (!rr) continue;
     score += rr.w;
     const good = ["육합", "삼합"].includes(rr.r);
-    reasons.push({ t: `${who}의 일지와 ${rr.r}`, s: rr.w, x: good ? `그날 일지가 ${who}의 일지와 ${rr.r} — ${who === "나" ? "나" : "그녀"}의 땅(일지)이 편안해지는 날` : `그날 일지가 ${who}의 일지와 ${rr.r} — ${who === "나" ? "내" : "그녀의"} 마음이 조심스러운 날(무리한 대화 피하기)` });
+    reasons.push({ t: `${who}의 일지와 ${rr.r}`, s: rr.w, x: good ? `그날 일지가 ${who}의 일지와 ${rr.r} — ${who}의 땅(일지)이 편안해지는 날` : `그날 일지가 ${who}의 일지와 ${rr.r} — ${who}의 마음이 조심스러운 날(무리한 대화 피하기)` });
     if (rr.r === "육합") flags.charm = true;
     if (["충", "형"].includes(rr.r)) flags.tension = true;
   }
 
   // 4) 오행 유입/극 — 그날의 기가 각자의 일간에게 어떻게 닿는가
   const inflow = (oh) => D === oh ? 0 : (OH_GEN[D] === oh ? 1 : (OH_KEUK[D] === oh ? -1 : (OH_GEN[oh] === D ? 2 : 0)));
-  // 1: 生해줌(인성 유입) 2: 내가 生함(식상 표현) -1: 극함(관살 긴장)
+  // 1: 生해줌(인성 유입) 2: 남자가 生함(식상 표현) -1: 극함(관살 긴장)
   const i1 = inflow(mOh), i2 = inflow(fOh);
-  if (i1 === 1) { score += 5; reasons.push({ t: "나에게 기운 유입(인성)", s: +5, x: `그날의 ${D} 기운이 나의 ${mOh} 일간을 生 — 채워지고 보호받는 날` }); }
-  if (i1 === -1) { score -= 5; reasons.push({ t: "나에게 긴장 유입(관살)", s: -5, x: `그날의 ${D} 기운이 나의 ${mOh} 일간을 극 — 부담과 압박을 느끼기 쉬운 날` }); }
-  if (i2 === 1) { score += 5; reasons.push({ t: "그녀에게 기운 유입(인성)", s: +5, x: `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 生 — 그녀가 편안해지는 날` }); }
-  if (i2 === -1) { score -= 5; reasons.push({ t: "그녀에게 긴장 유입(관살)", s: -5, x: `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 극 — 그녀가 예민해지기 쉬운 날` }); }
+  if (i1 === 1) { score += 5; reasons.push({ t: "남자에게 기운 유입(인성)", s: +5, x: `그날의 ${D} 기운이 남자의 ${mOh} 일간을 生 — 채워지고 보호받는 날` }); }
+  if (i1 === -1) { score -= 5; reasons.push({ t: "남자에게 긴장 유입(관살)", s: -5, x: `그날의 ${D} 기운이 남자의 ${mOh} 일간을 극 — 부담과 압박을 느끼기 쉬운 날` }); }
+  if (i2 === 1) { score += 5; reasons.push({ t: "여자에게 기운 유입(인성)", s: +5, x: `그날의 ${D} 기운이 여자의 ${fOh} 일간을 生 — 여자가 편안해지는 날` }); }
+  if (i2 === -1) { score -= 5; reasons.push({ t: "여자에게 긴장 유입(관살)", s: -5, x: `그날의 ${D} 기운이 여자의 ${fOh} 일간을 극 — 여자가 예민해지기 쉬운 날` }); }
 
-  // 4-1) 합궁(✿) — 그날 오행이 그녀 일간을 生(인성)하거나 같은 오행(비견)인 날 +8
-  if (i2 === 1 || D === fOh) { flags.herStrong = true; score += 8; reasons.push({ t: "합궁일(✿)", s: +8, x: i2 === 1 ? `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 生 — 그녀가 채워져 여유 있고 덜 지치는 날` : `그날이 그녀와 같은 ${fOh} 기운 — 그녀가 스스로 힘이 있는 날` }); }
+  // 4-1) 합궁(✿) — 그날 오행이 여자 일간을 生(인성)하거나 같은 오행(비견)인 날 +8
+  if (i2 === 1 || D === fOh) { flags.herStrong = true; score += 8; reasons.push({ t: "합궁일(✿)", s: +8, x: i2 === 1 ? `그날의 ${D} 기운이 여자의 ${fOh} 일간을 生 — 여자가 채워져 여유 있고 덜 지치는 날` : `그날이 여자와 같은 ${fOh} 기운 — 여자가 스스로 힘이 있는 날` }); }
 
   // 4-2) 최고 위험일(⚡) — 그날 일지가 누군가의 일지와 충 + 그날 천간이 누군가의 일간을 극. 표시용, 점수는 충·극 항목에 이미 반영
   if ([r1, r2].some(x => x && x.r === "충") && (i1 === -1 || i2 === -1)) { flags.danger = true; reasons.push({ t: "최고 위험일(⚡)", s: 0, x: "일지 충과 일간 극이 겹치는 날 — 만나거나 통화할 때 감정이 가장 부딪히기 쉬운 날. 예민한 이야기는 미루고 말투를 부드럽게" }); }
 
   // 5) 용신(부족 오행)이 들어오는 날
-  if (D === p1.yongsin) { score += 6; reasons.push({ t: "나의 용신일", s: +6, x: `내 사주에 가장 부족한 ${p1.yongsin} 오행이 그날에 들어옴 — 균형이 맞아가는 날` }); }
-  if (D === p2.yongsin) { score += 6; reasons.push({ t: "그녀의 용신일", s: +6, x: `그녀 사주에 가장 부족한 ${p2.yongsin} 오행이 그날에 들어옴 — 그녀의 컨디션이 좋아지는 날` }); }
+  if (D === p1.yongsin) { score += 6; reasons.push({ t: "남자의 용신일", s: +6, x: `남자 사주에 가장 부족한 ${p1.yongsin} 오행이 그날에 들어옴 — 균형이 맞아가는 날` }); }
+  if (D === p2.yongsin) { score += 6; reasons.push({ t: "여자의 용신일", s: +6, x: `여자 사주에 가장 부족한 ${p2.yongsin} 오행이 그날에 들어옴 — 여자의 컨디션이 좋아지는 날` }); }
 
   // 7) 신살 — 도화(끌림)·천을귀인
   const ss1 = shinsalOf(p1.dmGan, p1.dmJi, d.ji), ss2 = shinsalOf(p2.dmGan, p2.dmJi, d.ji);
-  const allSS = [...ss1.map(x => ({ ...x, who: "나" })), ...ss2.map(x => ({ ...x, who: "그녀" }))];
+  const allSS = [...ss1.map(x => ({ ...x, who: "남자" })), ...ss2.map(x => ({ ...x, who: "여자" }))];
   if (allSS.some(x => x.name === "도화살")) { score += 6; flags.charm = true; reasons.push({ t: "도화살 발동", s: +6, x: "그날 일지가 도화(桃花) — 매력과 끌림이 살아나는 날" }); }
   if (allSS.some(x => x.name === "천을귀인")) { score += 5; reasons.push({ t: "천을귀인 발동", s: +5, x: "그날 일지가 천을귀인 — 귀인의 도움이 따르는 날" }); }
 
@@ -217,13 +217,13 @@ function coupleFixed(p1, p2) {
   } else if (mOh === fOh) {
     score += 10; parts.push({ t: "천간 관계 — 비화(比和)", v: `같은 ${mOh} 일간`, s: 10, x: "두 사람의 마음이 같은 오행 — 서로를 잘 이해하고 리듬이 비슷합니다. 다만 닮아서 같은 약점을 함께 가질 수 있습니다." });
   } else if (OH_GEN[mOh] === fOh) {
-    score += 15; parts.push({ t: "천간 관계 — 내가 生", v: `${mOh} → ${fOh}`, s: 15, x: `나의 ${mOh} 일간이 그녀의 ${fOh} 일간을 生하는 구조. 내가 아끼고 챙겨 주는 관계입니다.` });
+    score += 15; parts.push({ t: "천간 관계 — 남자가 生", v: `${mOh} → ${fOh}`, s: 15, x: `남자의 ${mOh} 일간이 여자의 ${fOh} 일간을 生하는 구조. 남자가 아끼고 챙겨 주는 관계입니다.` });
   } else if (OH_GEN[fOh] === mOh) {
-    score += 15; parts.push({ t: "천간 관계 — 그녀가 生", v: `${fOh} → ${mOh}`, s: 15, x: `그녀의 ${fOh} 일간이 나의 ${mOh} 일간을 生하는 구조. 그녀가 나를 아끼고 챙겨 주는 관계입니다.` });
+    score += 15; parts.push({ t: "천간 관계 — 여자가 生", v: `${fOh} → ${mOh}`, s: 15, x: `여자의 ${fOh} 일간이 남자의 ${mOh} 일간을 生하는 구조. 여자가 남자를 아끼고 챙겨 주는 관계입니다.` });
   } else if (OH_KEUK[mOh] === fOh) {
-    score -= 6; parts.push({ t: "천간 관계 — 내가 극", v: `${mOh} ⊣ ${fOh}`, s: -6, x: `내 ${mOh} 기운이 그녀의 ${fOh}를 누르는 구조. 주도권은 내가 잡지만 강압적으로 흐르지 않게 주의하세요.` });
+    score -= 6; parts.push({ t: "천간 관계 — 남자가 극", v: `${mOh} ⊣ ${fOh}`, s: -6, x: `남자의 ${mOh} 기운이 여자의 ${fOh}를 누르는 구조. 주도권은 남자가 잡지만 강압적으로 흐르지 않게 주의하세요.` });
   } else {
-    score -= 10; parts.push({ t: "천간 관계 — 그녀가 극", v: `${fOh} ⊣ ${mOh}`, s: -10, x: `그녀의 ${fOh} 기운이 나의 ${mOh}를 누르는 구조. 서로 긴장이 생기기 쉬우니 대화 방식을 부드럽게.` });
+    score -= 10; parts.push({ t: "천간 관계 — 여자가 극", v: `${fOh} ⊣ ${mOh}`, s: -10, x: `여자의 ${fOh} 기운이 남자의 ${mOh}를 누르는 구조. 서로 긴장이 생기기 쉬우니 대화 방식을 부드럽게.` });
   }
 
   // 일지(몸·삶터) 관계
@@ -242,16 +242,16 @@ function coupleFixed(p1, p2) {
   const p2Lack = Object.entries(p2.cnt).sort((a, b) => a[1] - b[1])[0][0];
   const p2Max = Object.entries(p2.cnt).sort((a, b) => b[1] - a[1])[0][0];
   const p1Max = Object.entries(p1.cnt).sort((a, b) => b[1] - a[1])[0][0];
-  if (p2Max === p1Lack && p2Lack !== p1Lack) { score += 10; parts.push({ t: "오행 보완 — 그녀가 나를 채움", v: `내 부족 ${p1Lack} ← 그녀의 다수 ${p2Max}`, s: 10, x: `내 사주에 부족한 ${p1Lack} 오행이 그녀에게 많습니다. 그녀가 곁에 있으면 내 균형이 잡히는 구조입니다.` }); }
-  if (p1Max === p2Lack && p1Lack !== p2Lack) { score += 10; parts.push({ t: "오행 보완 — 내가 그녀를 채움", v: `그녀의 부족 ${p2Lack} ← 나의 다수 ${p1Max}`, s: 10, x: `그녀 사주에 부족한 ${p2Lack} 오행이 나에게 많습니다. 내가 곁에 있으면 그녀의 균형이 잡히는 구조입니다.` }); }
+  if (p2Max === p1Lack && p2Lack !== p1Lack) { score += 10; parts.push({ t: "오행 보완 — 여자가 남자를 채움", v: `남자의 부족 ${p1Lack} ← 여자의 다수 ${p2Max}`, s: 10, x: `남자 사주에 부족한 ${p1Lack} 오행이 여자에게 많습니다. 여자가 곁에 있으면 남자의 균형이 잡히는 구조입니다.` }); }
+  if (p1Max === p2Lack && p1Lack !== p2Lack) { score += 10; parts.push({ t: "오행 보완 — 남자가 여자를 채움", v: `여자의 부족 ${p2Lack} ← 남자의 다수 ${p1Max}`, s: 10, x: `여자 사주에 부족한 ${p2Lack} 오행이 남자에게 많습니다. 남자가 곁에 있으면 여자의 균형이 잡히는 구조입니다.` }); }
 
-  // 도화 — 상대 일지가 내 도화지인가 (끌림)
-  if (DOWHWA[JI_K[p1.dmJi]] === JI_K[p2.dmJi]) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "그녀의 일지가 내 도화지", s: 10, x: "그녀의 일지가 내 도화(桃花) 자리 — 본능적인 끌림과 매력을 느끼는 인연입니다." }); }
-  if (DOWHWA[JI_K[p2.dmJi]] === JI_K[p1.dmJi]) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "내 일지가 그녀의 도화지", s: 10, x: "내 일지가 그녀의 도화(桃花) 자리 — 그녀가 나에게 끌리는 인연입니다." }); }
+  // 도화 — 상대 일지가 남자의 도화지인가 (끌림)
+  if (DOWHWA[JI_K[p1.dmJi]] === JI_K[p2.dmJi]) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "여자의 일지가 남자의 도화지", s: 10, x: "여자의 일지가 남자의 도화(桃花) 자리 — 본능적인 끌림과 매력을 느끼는 인연입니다." }); }
+  if (DOWHWA[JI_K[p2.dmJi]] === JI_K[p1.dmJi]) { score += 10; parts.push({ t: "끌림 — 도화 인연", v: "남자의 일지가 여자의 도화지", s: 10, x: "남자의 일지가 여자의 도화(桃花) 자리 — 여자가 남자에게 끌리는 인연입니다." }); }
 
-  // 12운성 — 내 일간 기준 그녀 일지의 운성
+  // 12운성 — 남자 일간 기준 여자 일지의 운성
   const ws = woonseong(p1.dmGan, p2.dmJi);
-  const WS_TXT = { 장생: "그녀의 일지가 내 기준 장생(長生) — 함께 있으면 활력이 나는 인연", 제왕: "그녀의 일지가 내 기준 제왕(帝旺) — 그녀 곁에서 내가 가장 강해지는 인연", 건록: "그녀의 일지가 내 기준 건록 — 안정과 지지를 받는 인연", 태: "그녀의 일지가 내 기준 태(胎) — 서로 돌보며 새로 시작하는 부드러운 인연", 절: "그녀의 일지가 내 기준 절(絕) — 가끔 서로의 템포가 안 맞아 끊기는 느낌이 드는 인연", 사: "그녀의 일지가 내 기준 사(死) — 지나치게 익숙해지면 무기력해질 수 있어 새로움이 필요한 인연" };
+  const WS_TXT = { 장생: "여자의 일지가 남자 기준 장생(長生) — 함께 있으면 활력이 나는 인연", 제왕: "여자의 일지가 남자 기준 제왕(帝旺) — 여자 곁에서 남자가 가장 강해지는 인연", 건록: "여자의 일지가 남자 기준 건록 — 안정과 지지를 받는 인연", 태: "여자의 일지가 남자 기준 태(胎) — 서로 돌보며 새로 시작하는 부드러운 인연", 절: "여자의 일지가 남자 기준 절(絕) — 가끔 서로의 템포가 안 맞아 끊기는 느낌이 드는 인연", 사: "여자의 일지가 남자 기준 사(死) — 지나치게 익숙해지면 무기력해질 수 있어 새로움이 필요한 인연" };
   if (WS_TXT[ws]) { const bonus = ["장생", "제왕", "건록"].includes(ws) ? 8 : ["절", "사"].includes(ws) ? -6 : 0; score += bonus; parts.push({ t: "12운성", v: ws, s: bonus, x: WS_TXT[ws] }); }
 
   score = Math.max(0, Math.min(100, Math.round(score)));

@@ -199,6 +199,6 @@ function renderTojeong() {
       </table>
       <details style="margin-top:10px" open><summary style="cursor:pointer;font-weight:700">월별 풀이 (1~12월)</summary>${months}</details></div>`;
   };
-  $("tjBody").innerHTML = `<div class="grid2">${card(ST.p1, "나", true)}${card(ST.p2, "그녀", false)}</div>
+  $("tjBody").innerHTML = `<div class="grid2">${card(ST.p1, "남자", true)}${card(ST.p2, "여자", false)}</div>
     <div style="font-size:12px;color:var(--sub);margin-top:4px">괘 원문(한자)은 전래 토정비결 144괘, 풀이 문장은 이 사이트가 원문 뜻을 요약한 것입니다. 월별 풀이는 원전의 월별 구절이 아니라 올해 괘의 길흉과 그달 월운(절기월 기준)을 합쳐 만든 해석입니다. 태세·월건·일진수는 공개 조견표에서 역산한 값이라 책·사이트마다 괘가 다를 수 있습니다.</div>`;
 }

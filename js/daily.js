@@ -42,7 +42,7 @@ function renderDaily() {
     <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>그 외 날</span>
     <span>숫자 = 그날의 속궁합 점수(0~100) · 피크이면서 합궁인 날은 금색 칸에 ✿ 표시</span>`;
 
-  // 이달 요약 — 피크 TOP 3 + 합방합궁(✿ 그녀 컨디션 좋은 날)
+  // 이달 요약 — 피크 TOP 3 + 합방합궁(✿ 여자 컨디션 좋은 날)
   const peaks = [...data].sort((a, b) => b.score - a.score).slice(0, 3);
   const dz = data.filter(x => x.flags.danger);
   const hs = data.filter(x => x.flags.herStrong), ws = data.filter(x => x.westHap), any = data.filter(x => x.flags.herStrong || x.westHap);
