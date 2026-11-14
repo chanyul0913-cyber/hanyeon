@@ -9,6 +9,7 @@ const ST = { profiles: null, p1: null, p2: null, calYear: 0, calMonth: 0 };
 const today = () => new Date();
 
 // ---------- 공용 유틸 ----------
+const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? a : b); }; // 받침 있으면 a(이·은·을·과), 없으면 b
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const $ = id => document.getElementById(id);
 const ymdStr = n => `${Math.floor(n / 10000)}-${String(Math.floor(n / 100) % 100).padStart(2, "0")}-${String(n % 100).padStart(2, "0")}`;

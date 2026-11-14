@@ -40,7 +40,7 @@ function renderCouple() {
   const lack1 = OHS.reduce((a, b) => p1.cnt[a] <= p1.cnt[b] ? a : b), lack2 = OHS.reduce((a, b) => p2.cnt[a] <= p2.cnt[b] ? a : b);
   $("coupleOh").innerHTML = `<div class="card"><div class="sec-t">오행 균형 비교 <small>— 위: ${esc(p1.name)}, 아래(연한 바): ${esc(p2.name)}</small></div>${rows}
     <div style="margin-top:10px;font-size:13px;color:var(--sub)">
-      ${esc(p1.name)}가 부족한 오행 <b style="color:${OH_COLOR[lack1]}">${lack1}</b> / ${esc(p2.name)}가 부족한 오행 <b style="color:${OH_COLOR[lack2]}">${lack2}</b> —
+      ${esc(josa(p1.name, "이", "가"))} 부족한 오행 <b style="color:${OH_COLOR[lack1]}">${lack1}</b> / ${esc(josa(p2.name, "이", "가"))} 부족한 오행 <b style="color:${OH_COLOR[lack2]}">${lack2}</b> —
       서로의 다수 오행이 상대의 부족 오행이면 채워주는 궁합입니다.</div>
 </div>`;
 }

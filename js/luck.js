@@ -8,7 +8,7 @@ function renderLuck() {
   const star = n => `<span style="color:var(--gold2)">${"★".repeat(n)}</span><span style="opacity:.25">${"★".repeat(5 - n)}</span>`;
   const cell = (n, tags) => `<td>${star(n)}${tags.length ? `<div style="font-size:11px;color:var(--sub)">${tags.map(esc).join(" · ")}</div>` : ""}</td>`;
   const isNow = m => Y === now.getFullYear() && m === now.getMonth() + 1;
-  const best = (key, who) => { const mx = Math.max(...rows.map(r => r[who][key])); return rows.filter(r => r[who][key] === mx).map(r => r.m + "월").join("·") + ` (★${mx})`; };
+  const best = (key, who) => { const mx = Math.max(...rows.map(r => r[who][key])); return mx < 4 ? `뚜렷이 좋은 달 없음 (최고 ★${mx})` : rows.filter(r => r[who][key] === mx).map(r => r.m + "월").join("·") + ` (★${mx})`; };
   const both = rows.filter(r => r.a.love >= 4 && r.b.love >= 4).map(r => r.m + "월");
 
   $("luckBody").innerHTML = `<div class="card gold"><div class="sec-t">${Y}년 한눈에 보기</div>
