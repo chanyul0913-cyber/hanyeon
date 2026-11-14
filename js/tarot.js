@@ -1,12 +1,13 @@
 "use strict";
-// 합연 — 타로 탭: 메이저 아르카나 22장 중 3장(과거·현재·미래)을 뽑아 '나를 향한 그녀의 마음'을 읽는다.
+// 합연 — 타로 탭: 메이저 아르카나 22장 중 3장(과거·현재·미래)을 뽑아 '나를 향한 상대의 마음'을 읽는다.
+// 방향 선택: 그녀→나(내가 뽑아 그녀 마음 보기) / 나→그녀(그녀가 뽑아 내 마음 보기). 카드 뜻은 주어 없이 써서 양방향 공용.
 // 카드 뜻은 일반적으로 알려진 메이저 아르카나 의미를 연애 질문에 맞게 이 사이트가 정리한 것. 사주 계산과 무관.
 // [번호, 이름, 영문, 기호, 정방향 뜻, 역방향 뜻, 정방향 톤, 역방향 톤] — 톤: 1 긍정 · 0 복합 · -1 주의
 const TAROT = [
   [0, "바보", "The Fool", "🌱", "가볍고 설레는 호기심. 부담 없이 다가오고 싶어 하며 함께 있으면 자유롭다고 느낍니다.", "관계에 대한 확신이 아직 없습니다. 진지해지는 것을 망설이거나 즉흥적으로 행동합니다.", 1, -1],
   [1, "마법사", "The Magician", "✨", "당신에게 매력을 느끼고 적극적으로 표현하고 싶어 합니다. 먼저 움직일 준비가 되어 있습니다.", "마음과 말이 다를 수 있습니다. 표현이 서툴거나 상황을 재고 있습니다.", 1, -1],
   [2, "여사제", "The High Priestess", "🌙", "속마음을 드러내지 않지만 깊이 생각하고 있습니다. 조용하고 진지한 호감입니다.", "감정을 숨기고 거리를 둡니다. 말하지 않은 서운함이나 비밀이 있을 수 있습니다.", 0, -1],
-  [3, "여황제", "The Empress", "🌸", "따뜻하게 보살피고 싶은 마음. 당신 곁에서 안정감과 애정을 느낍니다.", "애정 표현이 줄었거나 지쳐 있습니다. 돌봄을 받고 싶은 쪽은 그녀일 수 있습니다.", 1, -1],
+  [3, "여황제", "The Empress", "🌸", "따뜻하게 보살피고 싶은 마음. 당신 곁에서 안정감과 애정을 느낍니다.", "애정 표현이 줄었거나 지쳐 있습니다. 돌봄을 받고 싶은 쪽은 상대일 수 있습니다.", 1, -1],
   [4, "황제", "The Emperor", "🏛️", "당신을 믿음직하게 보고 관계를 책임감 있게 지키려 합니다.", "통제받는다고 느끼거나 서로의 고집에 답답해합니다.", 1, -1],
   [5, "교황", "The Hierophant", "📜", "진지하고 안정된 관계를 원합니다. 신뢰와 약속을 중요하게 생각합니다.", "틀에 박힌 관계에 지쳤거나 가치관 차이를 느낍니다.", 1, 0],
   [6, "연인", "The Lovers", "💞", "강한 끌림과 마음이 통한다는 느낌. 당신을 사랑하는 마음이 분명합니다.", "마음이 엇갈리거나 선택 앞에서 흔들립니다. 대화가 필요합니다.", 1, -1],
@@ -36,10 +37,15 @@ function drawTarot() {
   renderTarot();
 }
 
+function setTarotDir(k) { ST.tarotDir = k; ST.tarot = null; renderTarot(); } // 질문이 바뀌면 새로 뽑기
+
 function renderTarot() {
-  const her = "그녀"; // 이름 뒤 조사(을/를) 문제를 피하려 호칭 고정
+  const her = ST.tarotDir === "me" ? "그" : "그녀"; // 마음의 주인 — 이름 뒤 조사 문제를 피하려 호칭 사용
+  const dirBtn = (k, label) => `<button onclick="setTarotDir('${k}')" style="${(ST.tarotDir || "her") === k ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}">${label}</button>`;
+  const head = `<div class="chips" style="justify-content:center;margin-bottom:12px"><span style="color:var(--sub);font-size:13px">누구의 마음을 볼까요?</span>
+    ${dirBtn("her", "그녀의 마음 (내가 뽑을 때)")}${dirBtn("me", "그의 마음 (그녀가 뽑을 때)")}</div>`;
   if (!ST.tarot) {
-    $("tarotBody").innerHTML = `<div class="card gold" style="text-align:center"><div class="sec-t" style="justify-content:center">${her}의 마음 — 타로 3장</div>
+    $("tarotBody").innerHTML = head + `<div class="card gold" style="text-align:center"><div class="sec-t" style="justify-content:center">${her}의 마음 — 타로 3장</div>
       <div style="color:var(--sub);margin:6px 0 14px">마음속으로 ${her}를 떠올리고 카드를 뽑으세요. 과거 · 현재 · 미래 세 장으로 나를 향한 마음을 읽습니다.</div>
       <button onclick="drawTarot()" style="font-size:16px;padding:10px 22px">🃏 카드 3장 뽑기</button></div>`;
     return;
@@ -50,7 +56,7 @@ function renderTarot() {
     : sum >= 1 ? `호감은 분명하지만 아직 조심스러운 부분이 있습니다. 서두르기보다 편안함을 쌓아 주세요.`
     : sum >= -1 ? `마음이 복잡하게 얽혀 있습니다. 한 번 진솔하게 이야기를 들어 주는 것이 좋겠습니다.`
     : `지금은 지치거나 서운한 마음이 큽니다. 요구보다 배려와 휴식을 먼저 건네 주세요.`;
-  $("tarotBody").innerHTML = `<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+  $("tarotBody").innerHTML = head + `<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
     ${cards.map(c => `<div class="card ${c.tone > 0 ? "gold" : ""}" style="text-align:center">
       <div style="font-size:12px;color:var(--sub)">${TAROT_POS[c.k]}</div>
       <div style="font-size:46px;margin:8px 0;${c.rev ? "transform:rotate(180deg)" : ""}">${c.t[3]}</div>
