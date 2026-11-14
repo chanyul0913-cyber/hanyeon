@@ -111,7 +111,7 @@ function dailyWestSync(p1, p2, date) {
   const T = transitsOf(date), N1 = natalOf(p1), N2 = natalOf(p2);
   const reasons = [], aspects = [];
   let score = 50;
-  let meOnly = 0, herOnly = 0, bothHard = 0, hard1All = 0, hard2All = 0;
+  let hard1All = 0, hard2All = 0;
   const syncList = [];
   let moon = null;
   for (const t of T) {
@@ -124,18 +124,10 @@ function dailyWestSync(p1, p2, date) {
       syncList.push(t.ko); score += 6;
       reasons.push({ t: `${t.ko} — 두 사람 조화`, s: +6, x: `오늘의 ${t.ko}이(가) ${p1.name}과(와) ${p2.name}의 출생 행성에 동시에 조화각 — 두 사람이 함께 잘 풀리는 날` });
       if (t.key === "Venus") { score += 6; reasons.push({ t: "사랑의 조화 (금성)", s: +6, x: "금성(애정)이 두 사람 모두와 조화 — 데이트·고백·손편지 등 애정 표현에 최적인 날" }); }
-    } else if (h1 > 0) meOnly++;
-    else if (h2 > 0) herOnly++;
+    }
     hard1All += hard1; hard2All += hard2;
   }
   if (!syncList.length && hard1All > 0 && hard2All > 0) { score -= 8; reasons.push({ t: "행성 긴장", s: -8, x: "오늘의 행성들이 두 사람 모두에게 긴장각 — 서로 예민해지기 쉬운 날. 중요한 대화는 미루기" }); }
-  let flow;
-  if (syncList.length) flow = { dir: "sync", label: "두 사람 조화", icon: "☯" };
-  else if (meOnly && herOnly) flow = { dir: "dual", label: "각자 조화", icon: "↑↑" };
-  else if (meOnly) flow = { dir: "me", label: "나 조화", icon: "↑" };
-  else if (herOnly) flow = { dir: "her", label: "그녀 조화", icon: "↑" };
-  else if (hard1All && hard2All) flow = { dir: "tension", label: "긴장", icon: "⚠", warn: true };
-  else flow = { dir: "calm", label: "고요", icon: "·" };
   score = Math.max(0, Math.min(100, Math.round(score)));
   const grade = score >= 82 ? { k: "peak", label: "서양 궁합 최고", stars: 3 }
     : score >= 68 ? { k: "good", label: "좋음", stars: 2 }
@@ -146,7 +138,7 @@ function dailyWestSync(p1, p2, date) {
   const herMV = aspects.filter(x => x.who === 2 && (x.t.key === "Moon" || x.t.key === "Venus"));
   const herStrong = herMV.some(x => x.a.s > 0) && !herMV.some(x => x.a.s < 0);
   if (herStrong) reasons.push({ t: "합궁일(✿)", s: 0, x: "오늘의 달(감정)·금성(애정)이 그녀의 출생 차트를 조화각으로만 비춤 — 그녀가 편안하고 덜 지치는 날" });
-  return { date: ymdOf(date), dow: date.getDay(), score, grade, flow, reasons, aspects, syncList, moon, herStrong };
+  return { date: ymdOf(date), dow: date.getDay(), score, grade, reasons, aspects, syncList, moon, herStrong };
 }
 
 function westDayAdvice(r) {

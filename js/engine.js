@@ -2,13 +2,9 @@
 // 합연(合緣) — 사주·궁합 계산 엔진 (UI 없음, 계산만)
 // 사주 8글자는 lunar-javascript(6tail, MIT, js/vendor/lunar.js)로 계산한다.
 // 서울은 동경 135° 표준시보다 실제 태양시가 약 30분 늦으므로 시주 경계에 30분 보정한다.
-// 기의 흐름 정의(본 사이트의 해석 체계):
-//   그날의 기(운) = 그날 일간(天干)의 오행 D, 나의 기 = 일간 오행 M, 그녀의 기 = 일간 오행 F
-//   · 나→그녀 : M이 D를 生하고 D가 F를 生  (내 기운이 그날을 거쳐 그녀에게 전달)
-//   · 그녀→나 : F가 D를 生하고 D가 M을 生  (그녀의 기운이 그날을 거쳐 나에게 전달)
-//   · 그날 D가 두 사람의 일간을 모두 生 → 두 사람 충전 / 모두 극 → 긴장
 // 속궁합 점수(0~100) = 애정 동조(재성·관성) + 천간합 + 지지 육합/삼합 − 충·형·원진·파·해
-//   + 오행 유입/극 + 용신(부족 오행) + 신살(도화·천을귀인) + 기의 흐름 체인 가중합.
+//   + 오행 유입/극 + 용신(부족 오행) + 신살(도화·천을귀인).
+// 합궁(✿) = 그날 일간 오행이 그녀 일간을 生하거나 같은 오행인 날(표시용, 점수 영향 없음).
 
 // ---------- 기본 상수 ----------
 const GAN = "甲乙丙丁戊己庚辛壬癸", GAN_K = "갑을병정무기경신임계";
@@ -131,7 +127,7 @@ function getDayGZ(date) {
   return { gan, ji, hanja: gz, oh: GAN_OH[gan], jiOh: JI_OH[ji], ilju: GAN_K[gan] + JI_K[ji] };
 }
 
-// ---------- 일별 속궁합·기의 흐름 ----------
+// ---------- 일별 속궁합·합궁 ----------
 // 두 사람(person) 사이에서 그 date의 궁합 상태를 계산한다.
 function dailySync(p1, p2, date) {
   const d = getDayGZ(date);
@@ -139,7 +135,7 @@ function dailySync(p1, p2, date) {
   const D = d.oh;
   const reasons = [];
   let score = 50;
-  const flags = { meToHer: false, herToMe: false, mutualCharge: false, together: false, tension: false, love: false, charm: false, herStrong: false };
+  const flags = { tension: false, love: false, charm: false, herStrong: false };
 
   // 1) 애정 동조일 — 그날의 기가 '나의 재성(여자 운)'이면서 '그녀의 관성(남자 운)'인 날
   if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = "mutual"; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 나의 재성이자 그녀의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
@@ -184,32 +180,6 @@ function dailySync(p1, p2, date) {
   if (D === p1.yongsin) { score += 6; reasons.push({ t: "나의 용신일", s: +6, x: `내 사주에 가장 부족한 ${p1.yongsin} 오행이 그날에 들어옴 — 균형이 맞아가는 날` }); }
   if (D === p2.yongsin) { score += 6; reasons.push({ t: "그녀의 용신일", s: +6, x: `그녀 사주에 가장 부족한 ${p2.yongsin} 오행이 그날에 들어옴 — 그녀의 컨디션이 좋아지는 날` }); }
 
-  // 6) 기의 흐름 체인 — 전달된 기운이 상대를 生(채움)하는지 / 극(부담)하는지 구분
-  let flow;
-  if (D === mOh && D === fOh) { flow = { dir: "both", label: "닮은꼴 동조", icon: "◎" }; score += 6; reasons.push({ t: "닮은꼴 동조일", s: +6, x: "그날의 기운이 두 사람의 일간과 같은 오행 — 취향과 리듬이 맞아떨어지는 날" }); }
-  else if (D === mOh && OH_GEN[mOh] === fOh) { flow = { dir: "me2her", label: "나 → 그녀", icon: "→" }; flags.meToHer = true; score += 10; reasons.push({ t: "기의 흐름: 나 → 그녀 (그녀가 채워짐)", s: +10, x: `그날 자체가 나와 같은 ${mOh} 기운이고 이것이 그녀의 ${fOh} 일간을 生 — 내 기운이 그날을 타고 그녀에게 직접 전달되어 그녀를 채워 주는 날` }); }
-  else if (D === fOh && OH_GEN[fOh] === mOh) { flow = { dir: "her2me", label: "그녀 → 나", icon: "←" }; flags.herToMe = true; score += 10; reasons.push({ t: "기의 흐름: 그녀 → 나 (내가 채워짐)", s: +10, x: `그날 자체가 그녀와 같은 ${fOh} 기운이고 이것이 나의 ${mOh} 일간을 生 — 그녀의 기운이 그날을 타고 나에게 직접 닿아 나를 채워 주는 날` }); }
-  else if (D === fOh && OH_GEN[mOh] === fOh) { flow = { dir: "me2her", label: "나 → 그녀", icon: "→" }; flags.meToHer = true; score += 10; reasons.push({ t: "기의 흐름: 나 → 그녀 (그녀가 채워짐)", s: +10, x: `그날 자체가 그녀와 같은 ${fOh} 기운이고 나의 ${mOh} 기운이 그것을 生 — 내 기운이 그녀의 자리에 들어와 그녀를 채워 주는 날` }); }
-  else if (D === mOh && OH_GEN[fOh] === mOh) { flow = { dir: "her2me", label: "그녀 → 나", icon: "←" }; flags.herToMe = true; score += 10; reasons.push({ t: "기의 흐름: 그녀 → 나 (내가 채워짐)", s: +10, x: `그날 자체가 나와 같은 ${mOh} 기운이고 그녀의 ${fOh} 기운이 그것을 生 — 그녀의 기운이 나의 자리에 들어와 나를 채워 주는 날` }); }
-  else if (D !== mOh && OH_GEN[mOh] === D && D !== fOh && OH_GEN[D] === fOh) { flow = { dir: "me2her", label: "나 → 그녀", icon: "→" }; flags.meToHer = true; score += 10; reasons.push({ t: "기의 흐름: 나 → 그녀 (그녀가 채워짐)", s: +10, x: `내 ${mOh} 기운이 그날의 ${D} 기운으로 흘러 그녀의 ${fOh} 일간을 生 — 내 마음이 전달되어 그녀를 채워 주는 날` }); }
-  else if (D !== fOh && OH_GEN[fOh] === D && D !== mOh && OH_GEN[D] === mOh) { flow = { dir: "her2me", label: "그녀 → 나", icon: "←" }; flags.herToMe = true; score += 10; reasons.push({ t: "기의 흐름: 그녀 → 나 (내가 채워짐)", s: +10, x: `그녀의 ${fOh} 기운이 그날의 ${D} 기운으로 흘러 나의 ${mOh} 일간을 生 — 그녀의 마음이 전달되어 나를 채워 주는 날` }); }
-  else if (D !== mOh && OH_GEN[mOh] === D && OH_KEUK[D] === fOh) { flow = { dir: "me2her", label: "나 → 그녀 (부담)", icon: "→", warn: true }; flags.meToHer = true; score += 2; reasons.push({ t: "기의 흐름: 나 → 그녀 (부담)", s: +2, x: `내 ${mOh} 기운이 그날의 ${D} 기운으로 흘러 그녀의 ${fOh} 일간을 극 — 마음은 전해지지만 그녀에게는 부담·압박으로 닿기 쉬운 날. 표현을 부드럽게` }); }
-  else if (D !== fOh && OH_GEN[fOh] === D && OH_KEUK[D] === mOh) { flow = { dir: "her2me", label: "그녀 → 나 (부담)", icon: "←", warn: true }; flags.herToMe = true; score += 2; reasons.push({ t: "기의 흐름: 그녀 → 나 (부담)", s: +2, x: `그녀의 ${fOh} 기운이 그날의 ${D} 기운으로 흘러 나의 ${mOh} 일간을 극 — 그녀의 마음이 부담으로 닿기 쉬운 날. 받아들이는 태도를 부드럽게` }); }
-  else if (i1 === 1 && i2 === 1) { flow = { dir: "charge", label: "두 사람 충전", icon: "⊕" }; flags.mutualCharge = true; score += 6; reasons.push({ t: "두 사람 충전일", s: +6, x: `그날의 ${D} 기운이 두 사람의 일간을 모두 生 — 함께 있으면 서로 채워지는 날` }); }
-  else if (OH_GEN[mOh] === D && OH_GEN[fOh] === D) { flow = { dir: "give", label: "함께 내보내기", icon: "↗" }; flags.together = true; reasons.push({ t: "함께 표현·활동일", s: 0, x: "두 사람의 기운이 그날의 기운을 함께 生 — 밖으로 활동·표현하기 좋은 날" }); }
-  else if (i1 === -1 && i2 === -1) { flow = { dir: "tension", label: "긴장", icon: "⚠" }; flags.tension = true; score -= 6; reasons.push({ t: "두 사람 긴장일", s: -6, x: `그날의 ${D} 기운이 두 사람의 일간을 모두 극 — 다툼·오해를 조심해야 하는 날` }); }
-  else if (i1 === 1) flow = { dir: "charge-me", label: "나 충전", icon: "↑" };
-  else if (i2 === 1) flow = { dir: "charge-her", label: "그녀 충전", icon: "↑" };
-  else if (D === mOh) flow = { dir: "rhythm-me", label: "나 리듬", icon: "↗" };
-  else if (D === fOh) flow = { dir: "rhythm-her", label: "그녀 리듬", icon: "↗" };
-  else if (OH_GEN[mOh] === D) flow = { dir: "spend-me", label: "나 활동", icon: "↗" };
-  else if (OH_GEN[fOh] === D) flow = { dir: "spend-her", label: "그녀 활동", icon: "↗" };
-  else flow = { dir: "calm", label: "고요", icon: "·" };
-
-  // 6-1) 용신 전달(✧) — 전달된 기운이 상대가 가장 부족한 오행(용신)일 때 최고급 선물
-  if (flow.dir === "me2her" && !flow.warn && D === p2.yongsin) { flow.yongsin = "her"; score += 8; reasons.push({ t: "용신 전달일(✧)", s: +8, x: `내 기운이 그날을 거쳐 그녀가 가장 부족한 ${p2.yongsin} 오행으로 들어가 — 그녀에게 가장 필요한 선물이 되는 최고의 사랑 날` }); }
-  else if (flow.dir === "her2me" && !flow.warn && D === p1.yongsin) { flow.yongsin = "me"; score += 8; reasons.push({ t: "용신 수혜일(✧)", s: +8, x: `그녀의 기운이 그날을 거쳐 내가 가장 부족한 ${p1.yongsin} 오행으로 들어가 — 나에게 가장 필요한 선물이 되는 최고의 날` }); }
-
   // 7) 신살 — 도화(끌림)·천을귀인
   const ss1 = shinsalOf(p1.dmGan, p1.dmJi, d.ji), ss2 = shinsalOf(p2.dmGan, p2.dmJi, d.ji);
   const allSS = [...ss1.map(x => ({ ...x, who: "나" })), ...ss2.map(x => ({ ...x, who: "그녀" }))];
@@ -224,7 +194,7 @@ function dailySync(p1, p2, date) {
     : { k: "bad", label: "긴장", stars: 0 };
   return {
     date: ymdOf(date), dow: date.getDay(), dayGZ: d,
-    score, grade, flow, flags, reasons,
+    score, grade, flags, reasons,
     ss: allSS,
     ss1: { 십신: shiShen(p1.dmGan, d.gan), 운성: woonseong(p1.dmGan, d.ji) },
     ss2: { 십신: shiShen(p2.dmGan, d.gan), 운성: woonseong(p2.dmGan, d.ji) }
@@ -244,9 +214,9 @@ function coupleFixed(p1, p2) {
   } else if (mOh === fOh) {
     score += 10; parts.push({ t: "천간 관계 — 비화(比和)", v: `같은 ${mOh} 일간`, s: 10, x: "두 사람의 마음이 같은 오행 — 서로를 잘 이해하고 리듬이 비슷합니다. 다만 닮아서 같은 약점을 함께 가질 수 있습니다." });
   } else if (OH_GEN[mOh] === fOh) {
-    score += 15; parts.push({ t: "천간 관계 — 내가 生", v: `${mOh} → ${fOh}`, s: 15, x: `내 기운이 ${mOh}→${fOh}로 그녀에게 흐르는 구조. 내가 주고 그녀가 받는 자연스러운 순환이 있습니다.` });
+    score += 15; parts.push({ t: "천간 관계 — 내가 生", v: `${mOh} → ${fOh}`, s: 15, x: `나의 ${mOh} 일간이 그녀의 ${fOh} 일간을 生하는 구조. 내가 아끼고 챙겨 주는 관계입니다.` });
   } else if (OH_GEN[fOh] === mOh) {
-    score += 15; parts.push({ t: "천간 관계 — 그녀가 生", v: `${fOh} → ${mOh}`, s: 15, x: `그녀의 기운이 ${fOh}→${mOh}로 나에게 흐르는 구조. 그녀가 나를 아끼고 채워 주는 순환이 있습니다.` });
+    score += 15; parts.push({ t: "천간 관계 — 그녀가 生", v: `${fOh} → ${mOh}`, s: 15, x: `그녀의 ${fOh} 일간이 나의 ${mOh} 일간을 生하는 구조. 그녀가 나를 아끼고 챙겨 주는 관계입니다.` });
   } else if (OH_KEUK[mOh] === fOh) {
     score -= 6; parts.push({ t: "천간 관계 — 내가 극", v: `${mOh} ⊣ ${fOh}`, s: -6, x: `내 ${mOh} 기운이 그녀의 ${fOh}를 누르는 구조. 주도권은 내가 잡지만 강압적으로 흐르지 않게 주의하세요.` });
   } else {

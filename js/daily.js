@@ -1,5 +1,5 @@
 "use strict";
-// 합연 — 일별 궁합 탭: 월 캘린더(속궁합 점수·기의 흐름 배지)·필터·이달 요약(피크일·흐름일 랭킹).
+// 합연 — 일별 궁합 탭: 월 캘린더(속궁합 점수·피크·합궁)·필터·이달 요약(피크 TOP 3·합방합궁).
 function renderDaily() {
   const y = ST.calYear, m = ST.calMonth;
   $("calTitle").textContent = `${y}년 ${m}월`;

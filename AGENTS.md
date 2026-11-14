@@ -1,6 +1,6 @@
 # 합연(合緣) — 커플 사주·궁합 웹사이트
 
-두 사람(남자=본인, 여자=상대)의 사주(四柱八字)를 계산해 **일주 기준 일별 속궁합·기의 흐름**을 보여 주는 비공개 정적 사이트.
+두 사람(남자=본인, 여자=상대)의 사주(四柱八字)를 계산해 **일주 기준 일별 속궁합·피크·합궁**을 보여 주는 비공개 정적 사이트.
 `D:\AI로또` 사이트(luckylab)와 같은 구조·방식: 정적 HTML+CSS+JS, 로컬 라이브러리, PWA.
 
 - 공개 주소: https://chanyul0913-cyber.github.io/hanyeon/
@@ -12,11 +12,11 @@
 |---|---|---|
 | `js/vendor/lunar.js` | lunar-javascript 1.7.7(6tail, MIT) — 사주·만세력·대운 계산 라이브러리 | 예 |
 | `js/vendor/astronomy.js` | astronomy-engine(MIT) — 서양 점성술 행성 위치 | 예 |
-| `js/engine.js` | 사주 계산·십신·지지 관계·12운성·신살·궁합 스코어·기의 흐름 엔진 (UI 없음) | |
+| `js/engine.js` | 사주 계산·십신·지지 관계·12운성·신살·궁합 스코어·합궁 엔진 (UI 없음) | |
 | `js/app.js` | 비밀번호 게이트·입력 폼·탭·localStorage·공유 링크 | |
 | `js/chart.js` | 명반 탭 렌더링 (사주 8자·오행·십신·대운) | |
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
-| `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크일·기의 흐름 배지·일 상세 모달) | |
+| `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크·합궁·일 상세 모달) | |
 | `js/western.js` | 서양 점성술 synastry (행성 아스펙트, astronomy-engine 있을 때만) | |
 | `js/wdaily.js` | 서양 일별 궁합 탭 (트랜짓 행성 × 두 출생 차트 아스펙트 캘린더·일 상세 모달, 계산은 western.js `dailyWestSync`) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |

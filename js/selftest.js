@@ -53,68 +53,36 @@ async function selfTest() {
   eq(p1b.dmHanja, p1.dmHanja, "양음력일주일치");
   eq(p1b.pillars[0].hanja, p1.pillars[0].hanja, "양음력년주일치");
 
-  // 9) 일별 스코어 400일 — 범위·플래그 일관성
-  let peak = 0, her2me = 0, me2her = 0;
+  // 9) 일별 스코어 400일 — 범위·형식, 1년 안에 '좋음' 이상 존재
+  let peak = 0;
   let d = new Date(2026, 10, 15, 12);
   for (let i = 0; i < 400; i++) {
     const r = dailySync(p1, p2, d);
-    ok(r.score >= 0 && r.score <= 100);
-    ok(r.grade && r.flow && r.flow.dir);
-    ok(!(r.flags.meToHer && r.flags.herToMe));
+    ok(r.score >= 0 && r.score <= 100 && r.grade && r.flags);
     if (r.score > peak) peak = r.score;
-    if (r.flags.meToHer) me2her++;
-    if (r.flags.herToMe) her2me++;
     d = addDays(d, 1);
   }
-  ok(peak >= 68); // 1년 안에 최소한 '좋음' 이상은 존재해야 함
-  ok(me2her > 0 || her2me > 0); // 기의 흐름일이 1년에 최소 한 번은 존재
+  ok(peak >= 68);
 
   // 10) 고정 궁합 — 부분 구성·점수 범위
   const c = coupleFixed(p1, p2);
   ok(c.score >= 0 && c.score <= 100 && c.parts.length >= 3 && c.grade);
 
-  // 10-1) 합성 커플(남=수 일간, 여=금 일간) — 금생수 체인으로 그녀→나 흐름·애정 동조일 검증
+  // 10-1) 합성 커플(남=수 일간, 여=금 일간) — 화일 애정 동조, 합궁(✿)은 토·금일만
   const fk1 = { name: "합성남", dmGan: 8, dmJi: 8, dmOh: "수", jaeOh: OH_KEUK["수"], gwanOh: ohKeukMe("수"), yongsin: "목", cnt: { 목: 0, 화: 1, 토: 2, 금: 2, 수: 3 } };
   const fk2 = { name: "합성녀", dmGan: 7, dmJi: 9, dmOh: "금", jaeOh: OH_KEUK["금"], gwanOh: ohKeukMe("금"), yongsin: "수", cnt: { 목: 1, 화: 0, 토: 1, 금: 4, 수: 1 } };
-  let fMe2her = 0, fHer2me = 0, fLove = 0;
+  let fLove = 0;
   d = new Date(2026, 0, 1, 12);
   for (let i = 0; i < 200; i++) {
     const r = dailySync(fk1, fk2, d);
-    if (r.flags.meToHer) fMe2her++;
-    if (r.flags.herToMe) fHer2me++;
     if (r.flags.love) fLove++;
-    d = addDays(d, 1);
-  }
-  ok(fHer2me > 0); ok(fMe2her === 0); ok(fLove > 0); // 금→수 흐름만 성립, 화일에 애정 동조
-  const fc = coupleFixed(fk1, fk2);
-  ok(fc.score >= 0 && fc.score <= 100);
-
-  // 10-2) 합성 커플(남=목 일간, 여=금 일간) — 부담 흐름(내 기→상대를 극)과 용신 전달 검증
-  const fk3 = { name: "합성남3", dmGan: 0, dmJi: 2, dmOh: "목", jaeOh: OH_KEUK["목"], gwanOh: ohKeukMe("목"), yongsin: "수", cnt: { 목: 3, 화: 1, 토: 1, 금: 0, 수: 1 } };
-  const fk4 = { name: "합성녀4", dmGan: 6, dmJi: 8, dmOh: "금", jaeOh: OH_KEUK["금"], gwanOh: ohKeukMe("금"), yongsin: "수", cnt: { 목: 0, 화: 1, 토: 2, 금: 4, 수: 1 } };
-  let pWarn = 0, pGood = 0, pYongsin = 0, pHerWarn = 0;
-  d = new Date(2026, 0, 1, 12);
-  for (let i = 0; i < 400; i++) {
-    const r = dailySync(fk3, fk4, d);
-    if (r.flow.dir === "me2her" && r.flow.warn) pWarn++;
-    if (r.flow.dir === "me2her" && !r.flow.warn) pGood++;
-    if (r.flow.dir === "her2me" && r.flow.warn) pHerWarn++;
-    if (r.flow.yongsin === "me" || r.flow.yongsin === "her") pYongsin++;
+    eq(!!r.flags.herStrong, ["토", "금"].includes(r.dayGZ.oh), "그녀합궁" + r.date);
     ok(r.score >= 0 && r.score <= 100);
     d = addDays(d, 1);
   }
-  ok(pWarn > 0);    // 목→화→(화 극 금): 내 기운이 가지만 부담이 되는 날 존재
-  ok(pGood === 0);  // 남목·여금 구조상 상대를 生하는 me2her 체인은 성립하지 않음
-  ok(pYongsin > 0); // 그녀→나(금→수 체인) + 내 용신 수 → 용신 수혜일(✧) 존재
-  ok(pHerWarn === 0); // 금→수→(수 극 목)? 수 극 화이므로 성립하지 않음
-
-  // 10-3) 그녀 컨디션(✿) — 여=금 일간이면 토(무·기)·금(경·신)일만 해당
-  d = new Date(2026, 0, 1, 12);
-  for (let i = 0; i < 60; i++) {
-    const r = dailySync(fk3, fk4, d);
-    eq(!!r.flags.herStrong, ["토", "금"].includes(r.dayGZ.oh), "그녀컨디션" + r.date);
-    d = addDays(d, 1);
-  }
+  ok(fLove > 0);
+  const fc = coupleFixed(fk1, fk2);
+  ok(fc.score >= 0 && fc.score <= 100);
 
   // 11) 별자리 경계
   eq(zodiacSign(2000, 1, 5).name, "염소자리", "별자리염소");
@@ -126,8 +94,8 @@ async function selfTest() {
     let wSync = 0; d = new Date(2026, 10, 15, 12);
     for (let i = 0; i < 365; i++) {
       const r = dailyWestSync(p1, p2, d);
-      ok(r.score >= 0 && r.score <= 100 && r.grade && r.flow && r.moon);
-      if (r.flow.dir === "sync") wSync++;
+      ok(r.score >= 0 && r.score <= 100 && r.grade && r.moon);
+      if (r.syncList.length) wSync++;
       const mv = r.aspects.filter(x => x.who === 2 && ["Moon", "Venus"].includes(x.t.key));
       eq(r.herStrong, mv.some(x => x.a.s > 0) && !mv.some(x => x.a.s < 0), "서양합궁" + r.date);
       d = addDays(d, 1);
@@ -139,7 +107,7 @@ async function selfTest() {
   const dist = { peak: 0, good: 0, normal: 0, care: 0, bad: 0 };
   d = new Date(2026, 10, 15, 12);
   for (let i = 0; i < 365; i++) { dist[dailySync(p1, p2, d).grade.k]++; d = addDays(d, 1); }
-  const sum = { ok: P.length === 0, problems: P.filter(Boolean), peak, me2her, her2me, warnMe2her: pWarn, yongsin: pYongsin, dist };
+  const sum = { ok: P.length === 0, problems: P.filter(Boolean), peak, dist };
   console.log("[합연 selfTest]", sum);
   return sum;
 }
