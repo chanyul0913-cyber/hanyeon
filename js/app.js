@@ -159,17 +159,26 @@ function openSettings() { fillForms(); $("setMsg").textContent = ""; $("modalSet
 function renderHome() {
   const t = new Date();
   const r = dailySync(ST.p1, ST.p2, t);
-  const hasW = !!window.Astronomy, w = hasW ? dailyWestSync(ST.p1, ST.p2, t) : null;
-  const top3 = r.reasons.filter(x => !/기의 흐름|용신 전달|용신 수혜/.test(x.t)).slice(0, 3); // 흐름 항목은 오늘 탭에서 숨김
+  const hasW = !!window.Astronomy, w = westOf(t);
+  const top3 = r.reasons.slice(0, 3);
+  // 오늘의 합방합궁 상태 — 오늘이 아니면 30일 안의 다음 합궁·서양합궁일 안내
+  const sHap = !!r.flags.herStrong, wHap = !!(w && w.herStrong);
+  let hapLine;
+  if (sHap || wHap) hapLine = `<b style="color:var(--gold2)">✿ 오늘은 ${sHap && wHap ? "합궁·서양합궁 둘 다인 날" : sHap ? "합궁일" : "서양합궁일"}</b>`;
+  else {
+    let nx = null;
+    for (let i = 1; i <= 30 && !nx; i++) { const dt = addDays(t, i), rs = dailySync(ST.p1, ST.p2, dt), ww = westOf(dt); if (rs.flags.herStrong || ww?.herStrong) nx = { i, rs, w: !!ww?.herStrong }; }
+    hapLine = nx ? `<span class="rank-row" onclick="openDayModal(${nx.rs.date})" style="display:inline-flex;border:0;padding:0">다음 합방합궁: <b style="margin:0 6px">${fmtYMD(nx.rs.date)}</b><span style="color:var(--sub);margin-right:6px">${nx.i}일 후</span>${peakBadge(false, nx.rs.flags.herStrong, nx.w)}</span>` : `<span style="color:var(--sub)">향후 30일 안에 합방합궁일이 없습니다.</span>`;
+  }
   $("homeToday").innerHTML = `<div class="card gold">
     <div class="sec-t">오늘의 궁합 <span class="today-date">${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")} (${dowK[t.getDay()]})</span></div>
     <div class="gauge-wrap">
       ${gaugeSVG(r.score, r.grade.label)}
       <div class="gauge-label">
         <div class="today-ilju">오늘 일주: ${r.dayGZ.hanja} (${r.dayGZ.ilju}) · ${r.dayGZ.oh}</div>
-        <div style="margin:8px 0 6px">${peakBadge(r.grade.k === "peak", r.flags.herStrong)}</div>
+        <div style="margin:8px 0 4px">${peakBadge(r.grade.k === "peak", sHap, wHap)}</div>
+        <div style="font-size:13.5px;margin-bottom:6px">${hapLine}</div>
         <div>${top3.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}</div>
-        ${w ? `<div class="rank-row" onclick="openDayModal(${w.date})" style="margin-top:6px"><span class="today-ilju">서양 점성술</span><span class="today-date">☾ ${w.moon ? esc(w.moon.sign) : ""}</span><span style="flex:1">${peakBadge(false, false, w.herStrong)}</span><b style="font-family:var(--serif);font-size:16px">${w.score}</b></div>` : ""}
         <div><button id="btnTodayMore" onclick="openDayModal(${ymdOf(t)})">상세 보기 ▸</button></div>
       </div>
     </div></div>`;
