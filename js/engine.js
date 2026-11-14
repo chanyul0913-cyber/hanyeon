@@ -139,7 +139,7 @@ function dailySync(p1, p2, date) {
   const D = d.oh;
   const reasons = [];
   let score = 50;
-  const flags = { meToHer: false, herToMe: false, mutualCharge: false, together: false, tension: false, love: false, charm: false };
+  const flags = { meToHer: false, herToMe: false, mutualCharge: false, together: false, tension: false, love: false, charm: false, herStrong: false };
 
   // 1) 애정 동조일 — 그날의 기가 '나의 재성(여자 운)'이면서 '그녀의 관성(남자 운)'인 날
   if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = "mutual"; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 나의 재성이자 그녀의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
@@ -176,6 +176,9 @@ function dailySync(p1, p2, date) {
   if (i1 === -1) { score -= 5; reasons.push({ t: "나에게 긴장 유입(관살)", s: -5, x: `그날의 ${D} 기운이 나의 ${mOh} 일간을 극 — 부담과 압박을 느끼기 쉬운 날` }); }
   if (i2 === 1) { score += 5; reasons.push({ t: "그녀에게 기운 유입(인성)", s: +5, x: `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 生 — 그녀가 편안해지는 날` }); }
   if (i2 === -1) { score -= 5; reasons.push({ t: "그녀에게 긴장 유입(관살)", s: -5, x: `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 극 — 그녀가 예민해지기 쉬운 날` }); }
+
+  // 4-1) 그녀 컨디션 좋은 날(✿) — 그날 오행이 그녀 일간을 生(인성)하거나 같은 오행(비견). 표시용, 점수 영향 없음
+  if (i2 === 1 || D === fOh) { flags.herStrong = true; reasons.push({ t: "그녀 컨디션 좋은 날(✿)", s: 0, x: i2 === 1 ? `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 生 — 그녀가 채워져 여유 있고 덜 지치는 날` : `그날이 그녀와 같은 ${fOh} 기운 — 그녀가 스스로 힘이 있는 날` }); }
 
   // 5) 용신(부족 오행)이 들어오는 날
   if (D === p1.yongsin) { score += 6; reasons.push({ t: "나의 용신일", s: +6, x: `내 사주에 가장 부족한 ${p1.yongsin} 오행이 그날에 들어옴 — 균형이 맞아가는 날` }); }

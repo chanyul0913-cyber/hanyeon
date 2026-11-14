@@ -108,6 +108,14 @@ async function selfTest() {
   ok(pYongsin > 0); // 그녀→나(금→수 체인) + 내 용신 수 → 용신 수혜일(✧) 존재
   ok(pHerWarn === 0); // 금→수→(수 극 목)? 수 극 화이므로 성립하지 않음
 
+  // 10-3) 그녀 컨디션(✿) — 여=금 일간이면 토(무·기)·금(경·신)일만 해당
+  d = new Date(2026, 0, 1, 12);
+  for (let i = 0; i < 60; i++) {
+    const r = dailySync(fk3, fk4, d);
+    eq(!!r.flags.herStrong, ["토", "금"].includes(r.dayGZ.oh), "그녀컨디션" + r.date);
+    d = addDays(d, 1);
+  }
+
   // 11) 별자리 경계
   eq(zodiacSign(2000, 1, 5).name, "염소자리", "별자리염소");
   eq(zodiacSign(2000, 3, 22).name, "양자리", "별자리양");

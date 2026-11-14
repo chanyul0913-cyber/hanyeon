@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); renderAll("wdaily"); };
   $("wCalPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("wdaily"); };
   $("wCalNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("wdaily"); };
-  ["fPeak", "fMe", "fHer", "fCare", "fYongsin"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
+  ["fPeak", "fMe", "fHer", "fCare", "fYongsin", "fHerStrong"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
   loadFromHash();
