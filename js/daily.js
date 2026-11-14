@@ -9,23 +9,23 @@ function renderDaily() {
 
   // 이달 전체 계산
   const data = [];
-  for (let d = 1; d <= daysIn; d++) { const dt = new Date(y, m - 1, d, 12), r = dailySync(ST.p1, ST.p2, dt); r.westHap = !!westOf(dt)?.herStrong; data.push(r); }
+  for (let d = 1; d <= daysIn; d++) { const dt = new Date(y, m - 1, d, 12), r = dailySync(ST.p1, ST.p2, dt); const w = westOf(dt); r.westHap = !!w?.herStrong; r.lotto1 = lottoOf(ST.p1, 1, dt, w); r.lotto2 = lottoOf(ST.p2, 2, dt, w); data.push(r); }
   const byYmd = Object.fromEntries(data.map(r => [r.date, r]));
 
   // 캘린더 셀
   let cells = dowK.map((k, i) => `<div class="dow ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${k}</div>`).join("");
   for (let i = 0; i < lead; i++) cells += `<div class="day-cell dim"></div>`;
   const tY = new Date(), todayN = ymdOf(new Date(tY.getFullYear(), tY.getMonth(), tY.getDate()));
-  const show = { peak: $("fPeak").checked, herStrong: $("fHerStrong").checked, west: $("fWestHap").checked, danger: $("fDanger").checked };
+  const show = { peak: $("fPeak").checked, herStrong: $("fHerStrong").checked, west: $("fWestHap").checked, danger: $("fDanger").checked, l1: $("fLotto1").checked, l2: $("fLotto2").checked };
   for (let d = 1; d <= daysIn; d++) {
     const r = data[d - 1];
-    const dimmed = !(show.peak && r.grade.k === "peak") && !(show.herStrong && r.flags.herStrong) && !(show.west && r.westHap) && !(show.danger && r.flags.danger);
+    const dimmed = !(show.peak && r.grade.k === "peak") && !(show.herStrong && r.flags.herStrong) && !(show.west && r.westHap) && !(show.danger && r.flags.danger) && !(show.l1 && r.lotto1.ok) && !(show.l2 && r.lotto2.ok);
     const isPeak = r.grade.k === "peak", star = (r.flags.danger ? '<span class="star">⚡</span>' : "") + (isPeak ? '<span class="star">⭐</span>' : "");
     cells += `<div class="day-cell ${r.flags.danger ? "d-bad" : isPeak ? "d-peak" : r.flags.herStrong || r.westHap ? "d-good" : ""} ${dimmed ? "dim" : ""}"
       onclick="openDayModal(${r.date})">
       ${star}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
       <div class="dc-score" style="color:${r.flags.danger ? "var(--bad)" : isPeak ? "var(--peak)" : r.flags.herStrong || r.westHap ? "var(--good)" : "var(--ink)"}">${r.score}</div>
-      <div class="dc-flow">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:var(--su)">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>
+      <div class="dc-flow">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:var(--su)">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>${r.lotto1.ok || r.lotto2.ok ? `<div class="dc-flow" style="color:var(--mok)">🍀 ${r.lotto1.ok && r.lotto2.ok ? "둘 다 로또" : r.lotto1.ok ? "나의 로또" : "그녀 로또"}</div>` : ""}
       <div class="dc-day">${r.dayGZ.hanja}</div></div>`;
   }
   const tail = (7 - (lead + daysIn) % 7) % 7;
@@ -36,6 +36,7 @@ function renderDaily() {
   $("calLegend").innerHTML = `<span><i style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>⭐ 피크</span>
     <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁 · <span style="color:var(--su)">✿ 서양합궁</span></span>
     <span><i style="background:rgba(226,101,92,.13);border:1px solid rgba(226,101,92,.4)"></i>⚡ 최고 위험(일지 충 + 일간 극)</span>
+    <span>🍀 나의 로또 · 그녀 로또 — 사주 재물 + 서양 재물 합산이 높은 날(재미용)</span>
     <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>그 외 날</span>
     <span>숫자 = 그날의 속궁합 점수(0~100) · 피크이면서 합궁인 날은 금색 칸에 ✿ 표시</span>`;
 
@@ -54,5 +55,9 @@ function renderDaily() {
     </div>
     <div class="card"><div class="sec-t">⚡ 최고 위험 — 이달 <small>(일지 충 + 일간 극)</small></div>
       ${dz.length ? dz.map(x => `<div class="rank-row" onclick="openDayModal(${x.date})"><span class="today-ilju" style="color:var(--bad)">${fmtYMD(x.date)}</span><span class="today-date">${x.dayGZ.hanja}일</span><span style="flex:1;font-size:12.5px;color:var(--sub)">${esc(x.reasons.filter(q => q.s < 0).map(q => q.t).join(" · "))}</span><b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">이 달에 없음</span></div>'}
-      <div style="font-size:12px;color:var(--sub);margin-top:6px">만나거나 통화할 때 감정이 가장 부딪히기 쉬운 날입니다. 예민한 이야기는 미루고 말투를 부드럽게.</div></div>`;
+      <div style="font-size:12px;color:var(--sub);margin-top:6px">만나거나 통화할 때 감정이 가장 부딪히기 쉬운 날입니다. 예민한 이야기는 미루고 말투를 부드럽게.</div></div>
+    <div class="card"><div class="sec-t">🍀 로또 사기 좋은 날 — 이달 <small>(사주 재물 ×4 + 서양 재물 합산)</small></div>
+      <div class="grid2">${[[ST.p1, "lotto1", "나의 로또"], [ST.p2, "lotto2", "그녀 로또"]].map(([p, k, lb]) => { const L = data.filter(x => x[k].ok); return `<div><b>${esc(p.name)} · ${lb}</b> ${L.length}일
+        ${L.length ? L.map(x => `<div class="rank-row" onclick="openDayModal(${x.date})"><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">${x.dayGZ.hanja}일</span><span style="flex:1;font-size:12px;color:var(--sub)">${esc(x[k].saju.tags.join(" · "))}</span><b style="font-family:var(--serif);font-size:16px">${x[k].score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">이 달에 없음</span></div>'}</div>`; }).join("")}</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:6px">재미로 보는 운입니다. 로또는 무작위 추첨이라 당첨과는 무관해요.</div></div>`;
 }

@@ -169,7 +169,8 @@ function tjMonths(p, isMale, Y, yearG) {
     const ssTone = ["정재", "편재", "식신", "정관", "정인"].includes(L.sg) ? 0.5 : ["겁재", "상관", "편관"].includes(L.sg) ? -0.75 : 0; // 그달 천간 십신의 길흉
     const v = (L.wealth + L.love) / 2 + ssTone + (yearG === "길" ? 0.5 : yearG === "흉" ? -0.5 : 0) + (rel === "육합" || rel === "삼합" ? 0.5 : rel === "충" ? -1 : 0);
     const g = v >= 3.5 ? "길" : v >= 2.5 ? "평" : "흉";
-    const tail = [L.wealth >= 4 ? "재물운이 좋다." : L.wealth <= 1 ? "돈 관리에 신경 쓸 것." : "",
+    const spend = ["겁재", "비견"].includes(L.sg), earn = ["정재", "편재", "식신"].includes(L.sg); // 앞 문장(십신)과 재물 판단이 엇갈리면 이어지는 말로 연결
+    const tail = [L.wealth >= 4 ? (spend ? "그래도 들어오는 재물이 있어 잘 지키면 남는다." : "재물운이 좋다.") : L.wealth <= 2 ? (earn ? "다만 나가는 돈도 많으니 관리할 것." : "돈 관리에 신경 쓸 것.") : "",
       L.love >= 4 ? "애정운이 밝다." : L.love <= 1 ? "연인과의 감정 소모를 줄일 것." : ""].filter(Boolean).join(" ");
     out.push({ m, g, gz: L.gz, text: [TJ_MONTH_SS[L.sg], rel ? TJ_MONTH_REL[rel] : "", tail].filter(Boolean).join(" ") });
   }

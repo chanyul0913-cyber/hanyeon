@@ -140,3 +140,12 @@ function dailyWestSync(p1, p2, date) {
   if (herStrong) reasons.push({ t: "합궁일(✿)", s: 0, x: "오늘의 달(감정)·금성(애정)이 그녀의 출생 차트를 조화각으로만 비춤 — 그녀가 편안하고 덜 지치는 날" });
   return { date: ymdOf(date), dow: date.getDay(), score, grade, reasons, aspects, syncList, moon, herStrong };
 }
+
+// 서양 재물 기운(로또일 판단용) — 오늘의 금성(돈·즐거움)·태양(활력)·달(기분)이 그 사람 출생 차트와 이루는 각의 가중합. 조화 +, 긴장 −
+const westMoney = (w, who) => w ? w.aspects.filter(x => x.who === who && x.t.key !== "Mars").reduce((s, x) => s + x.a.s * TRANSIT_W[x.t.key], 0) : 0;
+// 로또 사기 좋은 날(🍀) — 사주 일진 재물 원점수×4 + 서양 재물 기운의 합산이 20 이상이고 둘 다 플러스인 날(1인당 월 2~4일 정도).
+// astronomy.js가 없으면 사주 재물 4 이상만으로 판정. 재미용 — 추첨은 무작위라 당첨과 무관.
+function lottoOf(p, who, date, w) {
+  const s = dayWealth(p, date), m = westMoney(w, who), score = Math.round(s.raw * 4 + m);
+  return { ok: w ? s.raw >= 2 && m > 0 && score >= 20 : s.raw >= 4, score, saju: s, west: Math.round(m * 10) / 10 };
+}

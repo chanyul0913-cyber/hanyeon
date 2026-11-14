@@ -268,22 +268,29 @@ function getMonthGZ(y, m) {
   return { gan, ji, hanja: gz, ilju: GAN_K[gan] + JI_K[ji] };
 }
 const luckStars = raw => raw >= 3 ? 5 : raw >= 2 ? 4 : raw >= 0 ? 3 : raw >= -1 ? 2 : 1; // 원점수 → ★ (특별한 기운 없는 달 = ★3 무난)
+// 재물 원점수 — 월주·일진 공용. 재성(정재2·편재1) 천간+지지, 식신생재 +1, 겁재 −1, 일지 육합·삼합 +1, 일지 충 −1, 용신 +1
+function wealthRaw(p, gan, ji, unit) {
+  const sg = shiShen(p.dmGan, gan), bg = shiShen(p.dmGan, JI_MAIN[ji]), rel = zaRel(JI_K[p.dmJi], JI_K[ji]);
+  const pts = x => (x === "정재" ? 2 : x === "편재" ? 1 : 0), tags = [];
+  let raw = pts(sg) + pts(bg);
+  if (raw) tags.push("재성" + unit);
+  if (sg === "식신" || bg === "식신") { raw += 1; tags.push("식신생재"); }
+  if (sg === "겁재" || bg === "겁재") { raw -= 1; tags.push("겁재(지출)"); }
+  if (rel === "육합" || rel === "삼합") { raw += 1; tags.push(`일지 ${rel}`); }
+  if (rel === "충") { raw -= 1; tags.push("일지 충"); }
+  if (GAN_OH[gan] === p.yongsin || JI_OH[ji] === p.yongsin) { raw += 1; tags.push("용신" + unit); }
+  return { raw, tags, sg, bg };
+}
+const dayWealth = (p, date) => { const d = getDayGZ(date); return wealthRaw(p, d.gan, d.ji, "일"); }; // 그날 일진의 재물 기운(로또일 판단용)
+
 // isMale: 남자는 재성, 여자는 관성을 애정 오행으로 본다
 function monthlyLuck(p, isMale, y, m) {
   const g = getMonthGZ(y, m);
   const sg = shiShen(p.dmGan, g.gan), bg = shiShen(p.dmGan, JI_MAIN[g.ji]);
   const rel = zaRel(JI_K[p.dmJi], JI_K[g.ji]), hap = isGanHap(p.dmGan, g.gan);
-  const yong = GAN_OH[g.gan] === p.yongsin || JI_OH[g.ji] === p.yongsin;
   const pts = (x, a, b) => (x === a ? 2 : x === b ? 1 : 0);
-  const wTags = [], lTags = [];
-  // 재물: 재성(정재2·편재1) 천간+지지, 식신 생재 +1, 겁재 −1(재물 다툼), 일지 육합·삼합 +1, 용신 +1, 일지 충 −1
-  let w = pts(sg, "정재", "편재") + pts(bg, "정재", "편재");
-  if (w) wTags.push("재성월");
-  if (sg === "식신" || bg === "식신") { w += 1; wTags.push("식신생재"); }
-  if (sg === "겁재" || bg === "겁재") { w -= 1; wTags.push("겁재(지출)"); }
-  if (rel === "육합" || rel === "삼합") { w += 1; wTags.push(`일지 ${rel}`); }
-  if (rel === "충") { w -= 1; wTags.push("일지 충"); }
-  if (yong) { w += 1; wTags.push("용신월"); }
+  const { raw: w, tags: wTags } = wealthRaw(p, g.gan, g.ji, "월");
+  const lTags = [];
   // 애정: 남=재성 / 여=관성(정2·편1), 도화월 +2, 일지 육합·삼합 +1, 천간합 +1, 일지 충 −2
   let l = isMale ? pts(sg, "정재", "편재") + pts(bg, "정재", "편재") : pts(sg, "정관", "편관") + pts(bg, "정관", "편관");
   if (l) lTags.push(isMale ? "재성(이성)월" : "관성(이성)월");

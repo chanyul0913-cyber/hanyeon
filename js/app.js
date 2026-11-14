@@ -37,6 +37,7 @@ function gaugeSVG(score, label) {
 function peakBadge(isPeak, herStrong, westHap, danger) { // 오늘·일별·궁합 분석 공용
   return (danger ? `<span class="badge b-tension">⚡ 최고 위험</span>` : "") + (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
 }
+const lottoBadge = (l1, l2) => (l1 && l1.ok ? `<span class="badge b-charge">🍀 나의 로또</span>` : "") + (l2 && l2.ok ? `<span class="badge b-charge">🍀 그녀 로또</span>` : "");
 const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
 // ---------- 비밀번호 게이트 ----------
 async function tryUnlock() {
@@ -178,7 +179,7 @@ function renderHome() {
       ${gaugeSVG(r.score, r.grade.label)}
       <div class="gauge-label">
         <div class="today-ilju">오늘 일주: ${r.dayGZ.hanja} (${r.dayGZ.ilju}) · ${r.dayGZ.oh}</div>
-        <div style="margin:8px 0 4px">${peakBadge(r.grade.k === "peak", sHap, wHap, r.flags.danger)}</div>
+        <div style="margin:8px 0 4px">${peakBadge(r.grade.k === "peak", sHap, wHap, r.flags.danger)}${lottoBadge(lottoOf(ST.p1, 1, t, w), lottoOf(ST.p2, 2, t, w))}</div>
         <div style="font-size:13.5px;margin-bottom:6px">${hapLine}</div>
         <div>${top3.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}</div>
         <div><button id="btnTodayMore" onclick="openDayModal(${ymdOf(t)})">상세 보기 ▸</button></div>
@@ -212,13 +213,16 @@ function openDayModal(ymd) {
   const d = new Date(Math.floor(ymd / 10000), Math.floor(ymd / 100) % 100 - 1, ymd % 100, 12);
   const r = dailySync(ST.p1, ST.p2, d);
   const reasons = r.reasons.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("");
-  const ss1 = r.ss1, ss2 = r.ss2, w = westOf(d);
+  const ss1 = r.ss1, ss2 = r.ss2, w = westOf(d), L1 = lottoOf(ST.p1, 1, d, w), L2 = lottoOf(ST.p2, 2, d, w);
+  const lPart = `<div class="sec-t">🍀 로또 운 <small>(사주 재물 ×4 + 서양 재물, 20 이상이면 로또일)</small></div>` + [[ST.p1, L1], [ST.p2, L2]].map(([p, L]) =>
+    `<div class="reason"><span class="rt">${esc(p.name)}${L.ok ? " — 🍀 로또 사기 좋은 날" : ""}</span><span class="rs" style="color:${L.ok ? "var(--good)" : "var(--sub)"}">${L.score}</span><div class="rx">사주 재물 ${L.saju.raw}${L.saju.tags.length ? ` (${esc(L.saju.tags.join(" · "))})` : ""} × 4 + 서양 재물 ${L.west}${w ? "" : " (천문 계산 불가 — 사주만)"}</div></div>`).join("") +
+    `<div style="font-size:12px;color:var(--sub)">재미로 보는 운입니다. 로또는 무작위 추첨이라 당첨과는 무관해요.</div>`;
   const wPart = w ? `<div class="sec-t">서양 점성술 <small>(오늘의 행성 × 두 출생 차트)</small></div>
     <div class="reason"><span class="rt">서양 점수 ${w.score} · ☾ ${w.moon ? esc(w.moon.sign) : ""}</span><span class="rs">${peakBadge(false, false, w.herStrong)}</span></div>
     ${w.reasons.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}` : "";
   $("dayDetail").innerHTML = `
     <div class="modal-hd"><b>${ymdStr(ymd)} (${dowK[d.getDay()]}) — ${r.dayGZ.hanja}일 (${r.dayGZ.ilju})</b><button class="modal-x" data-close>✕</button></div>
-    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong, w && w.herStrong, r.flags.danger)}
+    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong, w && w.herStrong, r.flags.danger)}${lottoBadge(L1, L2)}
       <table class="mini-tbl" style="margin-top:10px">
         <tr><td>나에게 오는 기운</td><td>${esc(ss1.십신)} · ${esc(ss1.운성)}운</td></tr>
         <tr><td>그녀에게 오는 기운</td><td>${esc(ss2.십신)} · ${esc(ss2.운성)}운</td></tr>
@@ -226,6 +230,7 @@ function openDayModal(ymd) {
       </table></div></div>
     <div class="sec-t">점수 근거</div>${reasons || '<div class="reason">특별한 작용 없는 고요한 날</div>'}
     ${wPart}
+    ${lPart}
     <div class="sec-t">조언</div><div class="reason">${esc(dayAdvice(r))}</div>`;
   $("modalDay").hidden = false;
   $("dayDetail").querySelectorAll("[data-close]").forEach(b => b.onclick = () => $("modalDay").hidden = true);
@@ -263,7 +268,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
   $("luckPrev").onclick = $("tjPrev").onclick = () => { ST.fYear--; renderAll(); };
   $("luckNext").onclick = $("tjNext").onclick = () => { ST.fYear++; renderAll(); };
-  ["fPeak", "fHerStrong", "fWestHap", "fDanger"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
+  ["fPeak", "fHerStrong", "fWestHap", "fDanger", "fLotto1", "fLotto2"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
   loadFromHash();

@@ -109,16 +109,19 @@ async function selfTest() {
 
   // 12) 서양 일별 궁합(트랜짓) — 범위·형식, 1년 안에 조화일 존재 (astronomy.js 있을 때만)
   if (window.Astronomy && typeof dailyWestSync === "function") {
-    let wSync = 0; d = new Date(2026, 10, 15, 12);
+    let wSync = 0, wLotto = 0; d = new Date(2026, 10, 15, 12);
     for (let i = 0; i < 365; i++) {
       const r = dailyWestSync(p1, p2, d);
       ok(r.score >= 0 && r.score <= 100 && r.grade && r.moon);
       if (r.syncList.length) wSync++;
       const mv = r.aspects.filter(x => x.who === 2 && ["Moon", "Venus"].includes(x.t.key));
       eq(r.herStrong, mv.some(x => x.a.s > 0) && !mv.some(x => x.a.s < 0), "서양합궁" + r.date);
+      const L = lottoOf(p1, 1, d, r); // 로또일 = 사주 재물≥2 · 서양 재물>0 · 합산≥20
+      eq(L.ok, L.saju.raw >= 2 && L.west > 0 && L.score >= 20, "로또일" + r.date);
+      if (L.ok) wLotto++;
       d = addDays(d, 1);
     }
-    ok(wSync > 0);
+    ok(wSync > 0); ok(wLotto > 0 && wLotto < 80); // 로또일은 1년에 있되 드물게
   }
 
   // 분포 요약(참고용)
