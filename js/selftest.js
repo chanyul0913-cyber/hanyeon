@@ -113,6 +113,18 @@ async function selfTest() {
   eq(zodiacSign(2000, 3, 22).name, "양자리", "별자리양");
   eq(zodiacSign(2000, 12, 21).name, "사수자리", "별자리사수");
 
+  // 12) 서양 일별 궁합(트랜짓) — 범위·형식, 1년 안에 조화일 존재 (astronomy.js 있을 때만)
+  if (window.Astronomy && typeof dailyWestSync === "function") {
+    let wSync = 0; d = new Date(2026, 10, 15, 12);
+    for (let i = 0; i < 365; i++) {
+      const r = dailyWestSync(p1, p2, d);
+      ok(r.score >= 0 && r.score <= 100 && r.grade && r.flow && r.moon);
+      if (r.flow.dir === "sync") wSync++;
+      d = addDays(d, 1);
+    }
+    ok(wSync > 0);
+  }
+
   // 분포 요약(참고용)
   const dist = { peak: 0, good: 0, normal: 0, care: 0, bad: 0 };
   d = new Date(2026, 10, 15, 12);

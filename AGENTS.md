@@ -18,6 +18,7 @@
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
 | `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크일·기의 흐름 배지·일 상세 모달) | |
 | `js/western.js` | 서양 점성술 synastry (행성 아스펙트, astronomy-engine 있을 때만) | |
+| `js/wdaily.js` | 서양 일별 궁합 탭 (트랜짓 행성 × 두 출생 차트 아스펙트 캘린더·일 상세 모달, 계산은 western.js `dailyWestSync`) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 
 ## 규칙
