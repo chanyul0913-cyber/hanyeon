@@ -34,11 +34,13 @@ function gaugeSVG(score, label) {
 
 // 흐름 배지 HTML
 function flowBadge(r) {
-  const f = r.flow, cls = { me2her: "b-flow", her2me: "b-flow", charge: "b-charge", tension: "b-tension" }[f.dir] || "b-neutral";
+  const f = r.flow;
+  const cls = f.warn ? "b-tension" : { me2her: "b-flow", her2me: "b-flow", charge: "b-charge", tension: "b-tension" }[f.dir] || "b-neutral";
   let extra = "";
   if (r.flags.love === "mutual") extra += `<span class="badge b-love">♥ 애정 동조</span>`;
   else if (r.flags.love === "me") extra += `<span class="badge b-love">♥ 나의 애정운</span>`;
   else if (r.flags.love === "her") extra += `<span class="badge b-love">♥ 그녀의 애정운</span>`;
+  if (f.yongsin) extra += `<span class="badge b-charge">✧ ${f.yongsin === "her" ? "그녀 용신 전달" : "나 용신 수혜"}</span>`;
   if (r.flags.mutualCharge) extra += `<span class="badge b-charge">⊕ 충전</span>`;
   if (r.flags.charm) extra += `<span class="badge b-love">✦ 도화</span>`;
   return `<span class="badge ${cls}">${f.icon} ${f.label}</span>${extra}`;
@@ -188,11 +190,11 @@ function renderHome() {
       <span class="today-date">${x.dayGZ.hanja}(${x.dayGZ.ilju})</span><span style="flex:1">${flowBadge(x)}</span>
       <b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`).join("")}</div>`;
 
-  // 기의 흐름 요약 (향후 30일)
-  const me = list.filter(x => x.flags.meToHer).slice(0, 6), her = list.filter(x => x.flags.herToMe).slice(0, 6);
-  const row = (x, dir) => x ? `<div class="flow-item" onclick="openDayModal(${x.date})" style="cursor:pointer"><span class="fd">${fmtYMD(x.date)}</span><span class="fi" style="color:var(--su)">${dir}</span><span class="fx">${esc(x.reasons.find(q => q.t.includes("기의 흐름"))?.x || "")}</span></div>` : "";
+  // 기의 흐름 요약 (향후 30일) — 부담일은 제외하고 좋은 기운만 나열
+  const me = list.filter(x => x.flags.meToHer && !x.flow.warn).slice(0, 6), her = list.filter(x => x.flags.herToMe && !x.flow.warn).slice(0, 6);
+  const row = (x, dir) => x ? `<div class="flow-item" onclick="openDayModal(${x.date})" style="cursor:pointer"><span class="fd">${fmtYMD(x.date)}</span><span class="fi" style="color:var(--su)">${dir}${x.flow.yongsin ? " ✧" : ""}</span><span class="fx">${esc(x.reasons.find(q => q.t.includes("기의 흐름"))?.x || "")}</span></div>` : "";
   $("homeFlow").innerHTML = `<div class="card"><div class="sec-t">기의 흐름 — 향후 30일</div>
-    <div style="margin-bottom:8px"><span class="badge b-flow">→ 나 → 그녀</span> 내 마음이 전달되는 날 · <span class="badge b-flow">← 그녀 → 나</span> 그녀의 마음이 닿는 날</div>
+    <div style="margin-bottom:8px"><span class="badge b-flow">→ 나 → 그녀</span> 내 기운이 그녀를 채워주는 날 · <span class="badge b-flow">← 그녀 → 나</span> 그녀의 기운이 나를 채우는 날 · ✧ = 상대의 용신(부족 오행)으로 전달</div>
     ${me.length ? me.map(x => row(x, "나 → 그녀")).join("") : '<div class="flow-item"><span class="fx">향후 30일간 나→그녀 흐름일이 없습니다. (체인 구조 특성상 희소)</span></div>'}
     ${her.length ? her.map(x => row(x, "그녀 → 나")).join("") : '<div class="flow-item"><span class="fx">향후 30일간 그녀→나 흐름일이 없습니다.</span></div>'}</div>`;
 }
@@ -247,7 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
-  ["fPeak", "fMe", "fHer", "fCare"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
+  ["fPeak", "fMe", "fHer", "fCare", "fYongsin"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
   loadFromHash();
