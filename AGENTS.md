@@ -27,7 +27,9 @@
 
 - 배포 후 JS/CSS를 수정하면 **index.html의 `?v=N` 버전을 올려야** 브라우저·서비스워커 캐시가 갱신된다 (Pages 캐시 10분).
 - 개발 확인: 폴더에서 `python -m http.server 8890` → http://localhost:8890 (8790은 AI로또가 사용)
-- 콘솔에서 `await selfTest()` → `ok: true`여야 함.
+- 콘솔에서 `await selfTest()` → `ok: true`여야 함. 페이지 열 때 자동 실행은 주소에 `?selftest`를 붙였을 때만.
+- 렌더링은 보이는 탭만(`renderAll()` = 현재 탭, `switchTab`이 열 때 그림). 새 탭을 추가하면 `renderAll`의 표(R)와 `switchTab` 해시 정규식에 등록.
+- 서비스 워커: 페이지(HTML)는 네트워크 우선, js·css는 `?v=N` 정확 일치 캐시. 배포 때 `sw.js`의 `CACHE` 이름도 올린다.
 - 사주 계산은 오직 `js/engine.js`를 통해서만 — 개별 파일에서 직접 lunar.js 호출 금지.
 - 서울 태양시 30분 보정(동경 135° vs 127°) 규칙 유지.
 - 시간을 모르면 시주를 계산하지 않는다(12:00 가정 표시 없이 `시주: 모름`).

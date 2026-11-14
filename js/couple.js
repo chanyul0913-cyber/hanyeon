@@ -1,5 +1,6 @@
 "use strict";
 // 합연 — 궁합 분석 탭: 일주×일주 고정 궁합(천간·일지·오행 보완·도화·12운성) + 오행 조합 시각화.
+let YEAR_CACHE = null;
 function renderCouple() {
   const c = coupleFixed(ST.p1, ST.p2);
   const p1 = ST.p1, p2 = ST.p2;
@@ -13,11 +14,17 @@ function renderCouple() {
       </div></div></div>`;
 
   // 피크·합궁 — 향후 1년 통계 + 피크이면서 합궁인 날
-  const hasW = !!window.Astronomy, t0 = today(), days = [];
-  for (let i = 0; i < 365; i++) {
-    const dt = addDays(t0, i), r = dailySync(p1, p2, dt), w = hasW ? dailyWestSync(p1, p2, dt) : null;
-    days.push({ r, sPeak: r.grade.k === "peak", sHap: !!r.flags.herStrong, wPeak: !!(w && w.grade.k === "peak"), wHap: !!(w && w.herStrong) });
+  const hasW = !!window.Astronomy, t0 = today();
+  // 1년치 계산은 무거워서 같은 두 사람·같은 날이면 재사용
+  if (!(YEAR_CACHE && YEAR_CACHE.p1 === p1 && YEAR_CACHE.p2 === p2 && YEAR_CACHE.d === ymdOf(t0))) {
+    const days = [];
+    for (let i = 0; i < 365; i++) {
+      const dt = addDays(t0, i), r = dailySync(p1, p2, dt), w = hasW ? dailyWestSync(p1, p2, dt) : null;
+      days.push({ r, sPeak: r.grade.k === "peak", sHap: !!r.flags.herStrong, wPeak: !!(w && w.grade.k === "peak"), wHap: !!(w && w.herStrong) });
+    }
+    YEAR_CACHE = { p1, p2, d: ymdOf(t0), days };
   }
+  const days = YEAR_CACHE.days;
   const cnt = f => days.filter(f).length;
   const hapGan = [...GAN_K].filter((g, i) => GAN_OH[i] === p2.dmOh || GAN_OH[i] === ohGenMe(p2.dmOh)).join("·");
   const best = days.filter(o => o.sPeak && (o.sHap || o.wHap)).slice(0, 5);

@@ -5,7 +5,7 @@
 // ---------- 전역 상태 ----------
 const LS_PROFILES = "hanyeon_profiles", LS_PASS = "hanyeon_pass";
 const DEFAULT_PASS_SHA256 = "d3cf6b77fdeae5ff43871acc766c91e3bca9b7d3b3a6c8c073d1ec0751df786d"; // 기본 비밀번호 0817
-const ST = { profiles: null, p1: null, p2: null, calYear: 0, calMonth: 0 };
+const ST = { profiles: null, p1: null, p2: null, calYear: 0, calMonth: 0, tab: "home" };
 const today = () => new Date();
 
 // ---------- 공용 유틸 ----------
@@ -127,7 +127,11 @@ function loadFromHash() {
   try {
     const json = decodeURIComponent(escape(atob(m[1].replace(/-/g, "+").replace(/_/g, "/"))));
     const arr = JSON.parse(json);
-    if (Array.isArray(arr) && arr.length === 2) { saveProfiles(arr); return true; }
+    if (Array.isArray(arr) && arr.length === 2) {
+      saveProfiles(arr);
+      history.replaceState(null, "", location.pathname + location.search); // 생년월일이 주소창·방문 기록에 남지 않게 지움
+      return true;
+    }
   } catch {}
   return false;
 }
@@ -137,6 +141,7 @@ function switchTab(name) {
   document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   document.querySelectorAll("main .tab").forEach(t => t.hidden = t.id !== "tab-" + name);
   history.replaceState(null, "", "#" + name);
+  ST.tab = name;
   renderAll(name);
 }
 
@@ -145,16 +150,9 @@ function renderAll(only) {
   if (!ST.p1 || !ST.p2) { openSettings(); return; }
   const t = today();
   ST.calYear = ST.calYear || t.getFullYear(); ST.fYear = ST.fYear || t.getFullYear(); ST.calMonth = ST.calMonth || (t.getMonth() + 1);
-  try {
-    renderHome();
-    if (!only || only === "myeongban") renderMyeongban();
-    if (!only || only === "couple") renderCouple();
-    if (!only || only === "daily") renderDaily();
-    if (!only || only === "western") renderWestern();
-    if (!only || only === "luck") renderLuck();
-    if (!only || only === "tojeong") renderTojeong();
-    if (!only || only === "tarot") renderTarot();
-  } catch (e) { console.error(e); }
+  // 보이는 탭만 그린다 — 다른 탭은 switchTab에서 열 때 그린다(첫 화면·저장·필터 속도)
+  const R = { home: renderHome, myeongban: renderMyeongban, couple: renderCouple, daily: renderDaily, western: renderWestern, luck: renderLuck, tojeong: renderTojeong, tarot: renderTarot };
+  try { R[only || ST.tab](); } catch (e) { console.error(e); }
 }
 
 function openSettings() { fillForms(); $("setMsg").textContent = ""; $("modalSettings").hidden = false; }
@@ -263,8 +261,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
-  $("luckPrev").onclick = $("tjPrev").onclick = () => { ST.fYear--; renderAll("luck"); renderAll("tojeong"); };
-  $("luckNext").onclick = $("tjNext").onclick = () => { ST.fYear++; renderAll("luck"); renderAll("tojeong"); };
+  $("luckPrev").onclick = $("tjPrev").onclick = () => { ST.fYear--; renderAll(); };
+  $("luckNext").onclick = $("tjNext").onclick = () => { ST.fYear++; renderAll(); };
   ["fPeak", "fHerStrong", "fWestHap", "fDanger"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
@@ -276,5 +274,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western|luck|tojeong|tarot)$/);
   if (hashTab) switchTab(hashTab[1]);
-  selfTest().catch(() => {});
+  if (location.search.includes("selftest")) selfTest().catch(() => {}); // 자동 점검은 ?selftest 일 때만(평소엔 콘솔 await selfTest())
 });
