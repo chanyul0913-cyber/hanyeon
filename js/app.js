@@ -37,7 +37,7 @@ function gaugeSVG(score, label) {
 function peakBadge(isPeak, herStrong, westHap, danger) { // 오늘·일별·궁합 분석 공용
   return (danger ? `<span class="badge b-tension">⚡ 최고 위험</span>` : "") + (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-west">✿ 서양합궁</span>` : "");
 }
-const lottoName = p => p === ST.p1 ? "🍀 나로또사" : "🍀 상대로또사"; // 설정의 '나'·'상대' 칸 기준 — 누가 입력해도 칸 이름과 일치
+const lottoName = p => p === ST.p1 ? "🍀 남자로또" : "🍀 여자로또"; // 설정의 '남자'·'여자' 칸 기준 — 누가 입력·조회해도 같은 뜻
 const lottoBadge = (l1, l2) => (l1 && l1.ok ? `<span class="badge b-lotto">${lottoName(ST.p1)}</span>` : "") + (l2 && l2.ok ? `<span class="badge b-lotto">${lottoName(ST.p2)}</span>` : "");
 const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
 // ---------- 비밀번호 게이트 ----------
@@ -73,7 +73,7 @@ function buildProfile(f) { // 폼 → profile 객체
   const h = nohour ? "" : f.h.value;
   const mi = nohour ? 0 : (+f.mi.value || 0);
   return {
-    name: f.name.value.trim() || (f === form1 ? "나" : "그녀"),
+    name: f.name.value.trim() || (f === form1 ? "남자" : "여자"),
     y: +f.y.value, m: +f.m.value, d: +f.d.value,
     cal: f.cal.value, leap: f.leap.checked, h, mi
   };
@@ -85,14 +85,14 @@ function saveFromForms() {
   let p1 = null, p2 = null;
   try {
     const pr1 = buildProfile(form1);
-    if (!pr1.y || !pr1.m || !pr1.d) throw new Error("나의 생년월일을 입력하세요.");
+    if (!pr1.y || !pr1.m || !pr1.d) throw new Error("남자의 생년월일을 입력하세요.");
     p1 = calcPersonSafe(pr1);
-  } catch (e) { msgs.push("나: " + e.message); }
+  } catch (e) { msgs.push("남자: " + e.message); }
   try {
     const pr2 = buildProfile(form2);
-    if (!pr2.y || !pr2.m || !pr2.d) throw new Error("상대의 생년월일을 입력하세요.");
+    if (!pr2.y || !pr2.m || !pr2.d) throw new Error("여자의 생년월일을 입력하세요.");
     p2 = calcPersonSafe(pr2);
-  } catch (e) { msgs.push("상대: " + e.message); }
+  } catch (e) { msgs.push("여자: " + e.message); }
   if (msgs.length) { $("setMsg").textContent = msgs.join(" / "); return; }
   ST.profiles = [buildProfile(form1), buildProfile(form2)];
   saveProfiles(ST.profiles);

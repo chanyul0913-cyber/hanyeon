@@ -26,7 +26,7 @@ function renderDaily() {
       onclick="openDayModal(${r.date})">
       ${star}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
       <div class="dc-score" style="color:${r.flags.danger ? "var(--bad)" : isPeak ? "#f5c842" : r.flags.herStrong ? "var(--good)" : r.westHap ? "#e88fc0" : r.lotto1.ok || r.lotto2.ok ? "#a98bf0" : "var(--ink)"}">${r.score}</div>
-      <div class="dc-flow" style="color:var(--good)">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:#e88fc0">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>${r.lotto1.ok || r.lotto2.ok ? `<div class="dc-flow" style="color:#a98bf0">${r.lotto1.ok && r.lotto2.ok ? "🍀 둘 다 로또사" : lottoName(r.lotto1.ok ? ST.p1 : ST.p2)}</div>` : ""}
+      <div class="dc-flow" style="color:var(--good)">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:#e88fc0">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>${r.lotto1.ok || r.lotto2.ok ? `<div class="dc-flow" style="color:#a98bf0">${r.lotto1.ok && r.lotto2.ok ? "🍀 둘 다 로또" : lottoName(r.lotto1.ok ? ST.p1 : ST.p2)}</div>` : ""}
       <div class="dc-day">${r.dayGZ.hanja}</div></div>`;
   }
   const tail = (7 - (lead + daysIn) % 7) % 7;
