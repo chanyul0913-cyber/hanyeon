@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0b0f1a"/>
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#d4af37" stroke-width="10" opacity=".35"/>
+  <text x="256" y="322" font-size="220" text-anchor="middle" fill="#d4af37" font-family="serif" font-weight="900">合</text>
+  <circle cx="176" cy="176" r="14" fill="#e2655c"/>
+  <circle cx="336" cy="336" r="14" fill="#5d9fd6"/>
+</svg>

@@ -1,0 +1,14 @@
+{
+ "name": "合緣 합연 — 우리 사주 궁합",
+ "short_name": "합연",
+ "description": "두 사람의 사주 일주를 비교해 일별 속궁합과 기의 흐름을 보여 주는 비공개 궁합 사이트",
+ "lang": "ko",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#0b0f1a",
+ "theme_color": "#0b0f1a",
+ "icons": [
+  { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+ ]
+}
