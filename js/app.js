@@ -32,23 +32,10 @@ function gaugeSVG(score, label) {
     <text x="65" y="86" text-anchor="middle" font-size="11" fill="#9aa0b0">${esc(label || "")}</text></svg>`;
 }
 
-// 흐름 배지 HTML
-function peakBadge(isPeak, herStrong) { // 일별·서양 일별 상세용: 피크(⭐)·합궁(✿)만
+// 피크·합궁 배지 HTML
+function peakBadge(isPeak, herStrong) { // 오늘·일별·서양 일별 공용
   return (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "");
 }
-function flowBadge(r) {
-  const f = r.flow;
-  const cls = f.warn ? "b-tension" : { me2her: "b-flow", her2me: "b-flow", charge: "b-charge", tension: "b-tension" }[f.dir] || "b-neutral";
-  let extra = "";
-  if (r.flags.love === "mutual") extra += `<span class="badge b-love">♥ 애정 동조</span>`;
-  else if (r.flags.love === "me") extra += `<span class="badge b-love">♥ 나의 애정운</span>`;
-  else if (r.flags.love === "her") extra += `<span class="badge b-love">♥ 그녀의 애정운</span>`;
-  if (f.yongsin) extra += `<span class="badge b-charge">✧ ${f.yongsin === "her" ? "그녀 용신 전달" : "나 용신 수혜"}</span>`;
-  if (r.flags.mutualCharge) extra += `<span class="badge b-charge">⊕ 충전</span>`;
-  if (r.flags.charm) extra += `<span class="badge b-love">✦ 도화</span>`;
-  return `<span class="badge ${cls}">${f.icon} ${f.label}</span>${extra}`;
-}
-
 // ---------- 비밀번호 게이트 ----------
 async function tryUnlock() {
   const pw = $("lockPass").value.trim();
@@ -172,15 +159,17 @@ function openSettings() { fillForms(); $("setMsg").textContent = ""; $("modalSet
 function renderHome() {
   const t = new Date();
   const r = dailySync(ST.p1, ST.p2, t);
-  const top3 = r.reasons.slice(0, 3);
+  const hasW = !!window.Astronomy, w = hasW ? dailyWestSync(ST.p1, ST.p2, t) : null;
+  const top3 = r.reasons.filter(x => !/기의 흐름|용신 전달|용신 수혜/.test(x.t)).slice(0, 3); // 흐름 항목은 오늘 탭에서 숨김
   $("homeToday").innerHTML = `<div class="card gold">
     <div class="sec-t">오늘의 궁합 <span class="today-date">${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")} (${dowK[t.getDay()]})</span></div>
     <div class="gauge-wrap">
       ${gaugeSVG(r.score, r.grade.label)}
       <div class="gauge-label">
         <div class="today-ilju">오늘 일주: ${r.dayGZ.hanja} (${r.dayGZ.ilju}) · ${r.dayGZ.oh}</div>
-        <div style="margin:8px 0 6px">${flowBadge(r)}</div>
+        <div style="margin:8px 0 6px">${peakBadge(r.grade.k === "peak", r.flags.herStrong)}</div>
         <div>${top3.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}</div>
+        ${w ? `<div class="rank-row" onclick="openWestDayModal(${w.date})" style="margin-top:6px"><span class="today-ilju">서양 일별 궁합</span><span class="today-date">☾ ${w.moon ? esc(w.moon.sign) : ""}</span><span style="flex:1">${peakBadge(w.grade.k === "peak", w.herStrong)}</span><b style="font-family:var(--serif);font-size:16px">${w.score}</b></div>` : ""}
         <div><button id="btnTodayMore" onclick="openDayModal(${ymdOf(t)})">상세 보기 ▸</button></div>
       </div>
     </div></div>`;
@@ -191,16 +180,20 @@ function renderHome() {
   const peaks = [...list].sort((a, b) => b.score - a.score).slice(0, 5);
   $("homePeak").innerHTML = `<div class="card"><div class="sec-t">다가올 특별한 날 TOP 5 <small>(향후 60일)</small></div>
     ${peaks.map((x, i) => `<div class="rank-row" onclick="openDayModal(${x.date})"><span class="rk">${i + 1}</span><span class="today-ilju">${fmtYMD(x.date)}</span>
-      <span class="today-date">${x.dayGZ.hanja}(${x.dayGZ.ilju})</span><span style="flex:1">${flowBadge(x)}</span>
+      <span class="today-date">${x.dayGZ.hanja}(${x.dayGZ.ilju})</span><span style="flex:1">${peakBadge(x.grade.k === "peak", x.flags.herStrong)}</span>
       <b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`).join("")}</div>`;
 
-  // 기의 흐름 요약 (향후 30일) — 부담일은 제외하고 좋은 기운만 나열
-  const me = list.filter(x => x.flags.meToHer && !x.flow.warn).slice(0, 6), her = list.filter(x => x.flags.herToMe && !x.flow.warn).slice(0, 6);
-  const row = (x, dir) => x ? `<div class="flow-item" onclick="openDayModal(${x.date})" style="cursor:pointer"><span class="fd">${fmtYMD(x.date)}</span><span class="fi" style="color:var(--su)">${dir}${x.flow.yongsin ? " ✧" : ""}</span><span class="fx">${esc(x.reasons.find(q => q.t.includes("기의 흐름"))?.x || "")}</span></div>` : "";
-  $("homeFlow").innerHTML = `<div class="card"><div class="sec-t">기의 흐름 — 향후 30일</div>
-    <div style="margin-bottom:8px"><span class="badge b-flow">→ 나 → 그녀</span> 내 기운이 그녀를 채워주는 날 · <span class="badge b-flow">← 그녀 → 나</span> 그녀의 기운이 나를 채우는 날 · ✧ = 상대의 용신(부족 오행)으로 전달</div>
-    ${me.length ? me.map(x => row(x, "나 → 그녀")).join("") : '<div class="flow-item"><span class="fx">향후 30일간 나→그녀 흐름일이 없습니다. (체인 구조 특성상 희소)</span></div>'}
-    ${her.length ? her.map(x => row(x, "그녀 → 나")).join("") : '<div class="flow-item"><span class="fx">향후 30일간 그녀→나 흐름일이 없습니다.</span></div>'}</div>`;
+  // 합방합궁 — 향후 30일: 사주 합궁(✿)·서양 합궁(✿), 둘 다인 날 먼저
+  const days = list.slice(0, 30).map(x => {
+    const wx = hasW ? dailyWestSync(ST.p1, ST.p2, new Date(Math.floor(x.date / 10000), Math.floor(x.date / 100) % 100 - 1, x.date % 100, 12)) : null;
+    return { x, saju: !!x.flags.herStrong, west: !!(wx && wx.herStrong) };
+  });
+  const both = days.filter(o => o.saju && o.west), any = days.filter(o => o.saju || o.west);
+  const pick = [...both, ...any.filter(o => !(o.saju && o.west))].slice(0, 10).sort((a, b) => a.x.date - b.x.date);
+  const tag = o => (o.saju ? `<span class="badge b-charge">✿ 사주 합궁</span>` : "") + (o.west ? `<span class="badge b-flow">✿ 서양 합궁</span>` : "");
+  $("homeFlow").innerHTML = `<div class="card"><div class="sec-t">합방합궁 — 향후 30일</div>
+    <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 사주 합궁</b> ${days.filter(o => o.saju).length}일${hasW ? ` · <b style="color:var(--su)">✿ 서양 합궁</b> ${days.filter(o => o.west).length}일 · <b style="color:var(--gold2)">둘 다</b> ${both.length}일` : ""}</div>
+    ${pick.length ? pick.map(o => `<div class="rank-row" onclick="openDayModal(${o.x.date})"><span class="today-ilju">${fmtYMD(o.x.date)}</span><span class="today-date">${o.x.dayGZ.hanja}</span><span style="flex:1">${tag(o)}</span><b style="font-family:var(--serif);font-size:16px">${o.x.score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">향후 30일 안에 합궁일이 없습니다.</span></div>'}</div>`;
 }
 
 // ---------- 일별 상세 모달 ----------
