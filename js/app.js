@@ -37,7 +37,7 @@ function gaugeSVG(score, label) {
 function peakBadge(isPeak, herStrong, westHap, danger) { // 오늘·일별·궁합 분석 공용
   return (danger ? `<span class="badge b-tension">⚡ 최고 위험</span>` : "") + (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-west">✿ 서양합궁</span>` : "");
 }
-const lottoName = p => `🍀 ${esc(p.name)} 로또`; // '나/상대' 대신 이름 — 누구 폰에서 봐도 같은 뜻
+const lottoName = p => p === ST.p1 ? "🍀 나로또사" : "🍀 상대로또사"; // 설정의 '나'·'상대' 칸 기준 — 누가 입력해도 칸 이름과 일치
 const lottoBadge = (l1, l2) => (l1 && l1.ok ? `<span class="badge b-lotto">${lottoName(ST.p1)}</span>` : "") + (l2 && l2.ok ? `<span class="badge b-lotto">${lottoName(ST.p2)}</span>` : "");
 const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
 // ---------- 비밀번호 게이트 ----------
