@@ -113,10 +113,12 @@ main { max-width: 1060px; margin: 0 auto; padding: 18px 16px 8px; }
 .day-cell .star { position: absolute; top: 4px; right: 6px; font-size: 11px; }
 .d-peak { background: linear-gradient(160deg, rgba(240,196,70,.32), rgba(240,196,70,.10)); border-color: rgba(240,196,70,.9); box-shadow: 0 0 0 1px rgba(240,196,70,.35) inset; }
 .d-good { background: linear-gradient(160deg, rgba(95,185,138,.12), rgba(95,185,138,.02)); border-color: rgba(95,185,138,.35); }
-.d-west { background: linear-gradient(160deg, rgba(232,143,192,.14), rgba(232,143,192,.03)); border-color: rgba(232,143,192,.45); }
+.d-west { background: linear-gradient(160deg, rgba(243,156,60,.14), rgba(243,156,60,.03)); border-color: rgba(243,156,60,.45); }
 .d-lotto { background: linear-gradient(160deg, rgba(169,139,240,.14), rgba(169,139,240,.03)); border-color: rgba(169,139,240,.45); }
-.b-west { color: #e88fc0; border-color: rgba(232,143,192,.5); background: rgba(232,143,192,.10); }
+.b-west { color: #f39c3c; border-color: rgba(243,156,60,.5); background: rgba(243,156,60,.10); }
 .b-lotto { color: #a98bf0; border-color: rgba(169,139,240,.5); background: rgba(169,139,240,.10); }
+.d-danger { background: linear-gradient(160deg, rgba(235,40,40,.38), rgba(235,40,40,.12)); border-color: rgba(255,70,70,.95); box-shadow: 0 0 0 1px rgba(255,70,70,.35) inset; }
+.b-danger { color: #fff; border-color: #e23030; background: #c62828; font-weight: 700; }
 .d-care { background: linear-gradient(160deg, rgba(226,161,92,.12), rgba(226,161,92,.02)); border-color: rgba(226,161,92,.35); }
 .d-bad { background: linear-gradient(160deg, rgba(226,101,92,.13), rgba(226,101,92,.02)); border-color: rgba(226,101,92,.4); }
 .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--sub); margin: 10px 0 2px; }
