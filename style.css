@@ -8,6 +8,7 @@
   --serif: "Noto Serif KR", serif; --sans: Pretendard Variable, Pretendard, -apple-system, "Malgun Gothic", sans-serif;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: var(--sans); background:

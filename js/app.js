@@ -36,7 +36,9 @@ function gaugeSVG(score, label) {
 function flowBadge(r) {
   const f = r.flow, cls = { me2her: "b-flow", her2me: "b-flow", charge: "b-charge", tension: "b-tension" }[f.dir] || "b-neutral";
   let extra = "";
-  if (r.flags.love) extra += `<span class="badge b-love">♥ 애정 동조</span>`;
+  if (r.flags.love === "mutual") extra += `<span class="badge b-love">♥ 애정 동조</span>`;
+  else if (r.flags.love === "me") extra += `<span class="badge b-love">♥ 나의 애정운</span>`;
+  else if (r.flags.love === "her") extra += `<span class="badge b-love">♥ 그녀의 애정운</span>`;
   if (r.flags.mutualCharge) extra += `<span class="badge b-charge">⊕ 충전</span>`;
   if (r.flags.charm) extra += `<span class="badge b-love">✦ 도화</span>`;
   return `<span class="badge ${cls}">${f.icon} ${f.label}</span>${extra}`;
@@ -243,11 +245,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
   ["fPeak", "fMe", "fHer", "fCare"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
-  // 공유 링크 → 프로필 복원
-  let restored = loadFromHash();
-  ST.profiles = restored ? loadProfiles() : loadProfiles();
-  if (restored && ST.profiles) {
-    try { ST.p1 = calcPerson(ST.profiles[0]); ST.p2 = calcPerson(ST.profiles[1]); } catch (e) { console.warn("프로필 계산 실패", e); }
+  // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
+  loadFromHash();
+  ST.profiles = loadProfiles();
+  if (ST.profiles) {
+    try { ST.p1 = calcPerson(ST.profiles[0]); ST.p2 = calcPerson(ST.profiles[1]); }
+    catch (e) { console.warn("저장된 프로필 계산 실패 — 다시 설정 필요", e); saveProfiles(null); ST.profiles = null; }
   }
   const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western)$/);
   if (hashTab) switchTab(hashTab[1]);

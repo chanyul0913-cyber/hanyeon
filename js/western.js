@@ -16,7 +16,7 @@ const ASPECTS = [
 ];
 
 function westPositions(p) {
-  const A = window.__ASTRO;
+  const A = window.Astronomy;
   const d = new Date(p.profile.y, p.profile.m - 1, p.profile.d, p.profile.h === "" ? 12 : +p.profile.h, +p.profile.mi || 0, 0);
   return WEST_PLANETS.map(x => {
     let elon;
@@ -36,12 +36,12 @@ function renderWestern() {
         <div style="margin-top:6px;font-size:12.5px;color:var(--sub)">같은 원소(불·흙·바람·물)가 가장 잘 맞고, 불↔바람·흙↔물이 서로를 살립니다.</div>
       </div></div></div>`;
 
-  if (!window.GeoVector || !window.Ecliptic || !window.EclipticGeoMoon || !window.Body) {
+  const A = window.Astronomy;
+  if (!A || !A.GeoVector || !A.Ecliptic || !A.EclipticGeoMoon || !A.Body) {
     $("westernSynastry").innerHTML = `<div class="card"><div class="sec-t">행성 아스펙트 (synastry)</div>
       <div class="reason">천문 계산 라이브러리(astronomy.js)를 불러오지 못해 행성 궁합을 건너뜁니다. 별자리 궁합만 표시됩니다.</div></div>`;
     return;
   }
-  window.__ASTRO = { Body: window.Body, Ecliptic: window.Ecliptic, GeoVector: window.GeoVector, EclipticGeoMoon: window.EclipticGeoMoon };
   let pos1, pos2;
   try { pos1 = westPositions(p1); pos2 = westPositions(p2); }
   catch (e) {

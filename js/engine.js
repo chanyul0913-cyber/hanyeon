@@ -142,9 +142,9 @@ function dailySync(p1, p2, date) {
   const flags = { meToHer: false, herToMe: false, mutualCharge: false, together: false, tension: false, love: false, charm: false };
 
   // 1) 애정 동조일 — 그날의 기가 '나의 재성(여자 운)'이면서 '그녀의 관성(남자 운)'인 날
-  if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = true; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 나의 재성이자 그녀의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
-  else if (D === p1.jaeOh) { score += 8; flags.love = true; reasons.push({ t: "나의 애정운(재성일)", s: +8, x: "그날의 기운이 나의 애정(재성)과 같은 오행 — 표현하고 주고 싶은 날" }); }
-  else if (D === p2.gwanOh) { score += 8; flags.love = true; reasons.push({ t: "그녀의 애정운(관성일)", s: +8, x: "그날의 기운이 그녀의 관성과 같은 오행 — 그녀에게 이끌리는 날" }); }
+  if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = "mutual"; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 나의 재성이자 그녀의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
+  else if (D === p1.jaeOh) { score += 8; flags.love = "me"; reasons.push({ t: "나의 애정운(재성일)", s: +8, x: "그날의 기운이 나의 애정(재성)과 같은 오행 — 표현하고 주고 싶은 날" }); }
+  else if (D === p2.gwanOh) { score += 8; flags.love = "her"; reasons.push({ t: "그녀의 애정운(관성일)", s: +8, x: "그날의 기운이 그녀의 관성과 같은 오행 — 그녀에게 이끌리는 날" }); }
 
   // 2) 천간합 — 그날 일간이 각자 일간과 합하는 날
   const h1 = ganHapWith(d.gan), h2 = ganHapWith(p1.dmGan), h3 = ganHapWith(p2.dmGan);
