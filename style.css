@@ -111,7 +111,7 @@ main { max-width: 1060px; margin: 0 auto; padding: 18px 16px 8px; }
 .day-cell .dc-flow { font-size: 10.5px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .day-cell .dc-day { font-size: 10px; color: var(--sub); }
 .day-cell .star { position: absolute; top: 4px; right: 6px; font-size: 11px; }
-.d-peak { background: linear-gradient(160deg, rgba(240,217,140,.14), rgba(240,217,140,.03)); border-color: rgba(240,217,140,.45); }
+.d-peak { background: linear-gradient(160deg, rgba(240,196,70,.32), rgba(240,196,70,.10)); border-color: rgba(240,196,70,.9); box-shadow: 0 0 0 1px rgba(240,196,70,.35) inset; }
 .d-good { background: linear-gradient(160deg, rgba(95,185,138,.12), rgba(95,185,138,.02)); border-color: rgba(95,185,138,.35); }
 .d-west { background: linear-gradient(160deg, rgba(232,143,192,.14), rgba(232,143,192,.03)); border-color: rgba(232,143,192,.45); }
 .d-lotto { background: linear-gradient(160deg, rgba(169,139,240,.14), rgba(169,139,240,.03)); border-color: rgba(169,139,240,.45); }

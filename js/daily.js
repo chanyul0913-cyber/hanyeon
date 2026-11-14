@@ -25,7 +25,7 @@ function renderDaily() {
     cells += `<div class="day-cell ${r.flags.danger ? "d-bad" : isPeak ? "d-peak" : r.flags.herStrong ? "d-good" : r.westHap ? "d-west" : r.lotto1.ok || r.lotto2.ok ? "d-lotto" : ""} ${dimmed ? "dim" : ""}"
       onclick="openDayModal(${r.date})">
       ${star}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
-      <div class="dc-score" style="color:${r.flags.danger ? "var(--bad)" : isPeak ? "var(--peak)" : r.flags.herStrong ? "var(--good)" : r.westHap ? "#e88fc0" : r.lotto1.ok || r.lotto2.ok ? "#a98bf0" : "var(--ink)"}">${r.score}</div>
+      <div class="dc-score" style="color:${r.flags.danger ? "var(--bad)" : isPeak ? "#f5c842" : r.flags.herStrong ? "var(--good)" : r.westHap ? "#e88fc0" : r.lotto1.ok || r.lotto2.ok ? "#a98bf0" : "var(--ink)"}">${r.score}</div>
       <div class="dc-flow" style="color:var(--good)">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:#e88fc0">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>${r.lotto1.ok || r.lotto2.ok ? `<div class="dc-flow" style="color:#a98bf0">${r.lotto1.ok && r.lotto2.ok ? "🍀 둘 다 로또" : lottoName(r.lotto1.ok ? ST.p1 : ST.p2)}</div>` : ""}
       <div class="dc-day">${r.dayGZ.hanja}</div></div>`;
   }
@@ -34,7 +34,7 @@ function renderDaily() {
   $("calGrid").innerHTML = cells;
 
   // 범례
-  $("calLegend").innerHTML = `<span><i style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>⭐ 피크</span>
+  $("calLegend").innerHTML = `<span><i style="border:1px solid rgba(240,196,70,.9);background:rgba(240,196,70,.32)"></i>⭐ 피크</span>
     <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁</span>
     <span><i style="background:rgba(232,143,192,.14);border:1px solid rgba(232,143,192,.45)"></i>✿ 서양합궁</span>
     <span><i style="background:rgba(226,101,92,.13);border:1px solid rgba(226,101,92,.4)"></i>⚡ 최고 위험(일지 충 + 일간 극)</span>
