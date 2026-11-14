@@ -22,6 +22,7 @@
 
 ## 규칙
 
+- 배포 후 JS/CSS를 수정하면 **index.html의 `?v=N` 버전을 올려야** 브라우저·서비스워커 캐시가 갱신된다 (Pages 캐시 10분).
 - 개발 확인: 폴더에서 `python -m http.server 8890` → http://localhost:8890 (8790은 AI로또가 사용)
 - 콘솔에서 `await selfTest()` → `ok: true`여야 함.
 - 사주 계산은 오직 `js/engine.js`를 통해서만 — 개별 파일에서 직접 lunar.js 호출 금지.
