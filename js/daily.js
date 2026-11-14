@@ -33,8 +33,8 @@ function renderDaily() {
   $("calGrid").innerHTML = cells;
 
   // 범례
-  $("calLegend").innerHTML = `<span><i style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>⭐ 피크 — 속궁합 최고(82점 이상)</span>
-    <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁 — 그날 기운이 그녀를 生하거나 같은 오행(그녀가 덜 지치는 날)</span>
+  $("calLegend").innerHTML = `<span><i style="border:1px solid rgba(240,217,140,.45);background:rgba(240,217,140,.14)"></i>⭐ 피크</span>
+    <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁</span>
     <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>그 외 날</span>
     <span>숫자 = 그날의 속궁합 점수(0~100) · 피크이면서 합궁인 날은 금색 칸에 ✿ 표시</span>`;
 
@@ -45,9 +45,9 @@ function renderDaily() {
   $("dailySummary").innerHTML = `
     <div class="grid2">
       <div class="card"><div class="sec-t">이달 속궁합 피크 TOP 3</div>
-        ${peaks.map((x, i) => `<div class="rank-row" onclick="openDayModal(${x.date})"><span class="rk">${i + 1}</span><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">${x.dayGZ.hanja}일</span><span style="flex:1">${flowBadge(x)}</span><b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`).join("")}</div>
+        ${peaks.map((x, i) => `<div class="rank-row" onclick="openDayModal(${x.date})"><span class="rk">${i + 1}</span><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">${x.dayGZ.hanja}일</span><span style="flex:1">${peakBadge(x.grade.k === "peak", x.flags.herStrong)}</span><b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`).join("")}</div>
       <div class="card"><div class="sec-t">합방합궁 — 이달</div>
-        <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 합궁</b> ${hs.length}일 <span style="color:var(--sub)">(그날 기운이 그녀를 生하거나 같은 오행 — 그녀가 덜 지치는 날)</span></div>
+        <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 합궁</b> ${hs.length}일</div>
         ${hList}</div>
     </div>`;
 }

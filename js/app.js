@@ -33,6 +33,9 @@ function gaugeSVG(score, label) {
 }
 
 // 흐름 배지 HTML
+function peakBadge(isPeak, herStrong) { // 일별·서양 일별 상세용: 피크(⭐)·합궁(✿)만
+  return (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "");
+}
 function flowBadge(r) {
   const f = r.flow;
   const cls = f.warn ? "b-tension" : { me2her: "b-flow", her2me: "b-flow", charge: "b-charge", tension: "b-tension" }[f.dir] || "b-neutral";
@@ -208,7 +211,7 @@ function openDayModal(ymd) {
   const ss1 = r.ss1, ss2 = r.ss2;
   $("dayDetail").innerHTML = `
     <div class="modal-hd"><b>${ymdStr(ymd)} (${dowK[d.getDay()]}) — ${r.dayGZ.hanja}일 (${r.dayGZ.ilju})</b><button class="modal-x" data-close>✕</button></div>
-    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${flowBadge(r)}
+    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong)}
       <table class="mini-tbl" style="margin-top:10px">
         <tr><td>나에게 오는 기운</td><td>${esc(ss1.십신)} · ${esc(ss1.운성)}운</td></tr>
         <tr><td>그녀에게 오는 기운</td><td>${esc(ss2.십신)} · ${esc(ss2.운성)}운</td></tr>
