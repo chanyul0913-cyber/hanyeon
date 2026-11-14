@@ -20,6 +20,3 @@ self.addEventListener("fetch", e => {
     return res;
   }).catch(() => caches.match("./"))));
 });
-if (location.protocol === "https:" && !/localhost|127\.0\.0\.1/.test(location.hostname)) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
-}

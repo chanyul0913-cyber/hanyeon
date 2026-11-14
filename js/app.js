@@ -228,6 +228,10 @@ function dayAdvice(r) {
 // ---------- 초기화 ----------
 document.addEventListener("DOMContentLoaded", async () => {
   if (!window.Solar || !window.Lunar) { document.body.innerHTML = "<p style='padding:40px'>사주 라이브러리(lunar.js)를 불러오지 못했습니다. 파일 위치를 확인하세요.</p>"; return; }
+  // PWA 서비스 워커 — 배포된 https 사이트에서만 등록 (localhost·file://에서는 개발 방해되니 끔)
+  if (location.protocol === "https:" && !/localhost|127\.0\.0\.1/.test(location.hostname) && navigator.serviceWorker) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
   initLock();
   $("btnSettings").onclick = openSettings;
   $("btnShare").onclick = shareLink;
