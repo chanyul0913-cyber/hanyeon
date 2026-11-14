@@ -24,8 +24,8 @@ function renderDaily() {
     cells += `<div class="day-cell ${r.flags.danger ? "d-bad" : isPeak ? "d-peak" : r.flags.herStrong ? "d-good" : r.westHap ? "d-west" : r.lotto1.ok || r.lotto2.ok ? "d-lotto" : ""} ${dimmed ? "dim" : ""}"
       onclick="openDayModal(${r.date})">
       ${star}<div class="dc-date"><span>${d}</span>${r.date === todayN ? '<b style="color:var(--gold2)">오늘</b>' : ""}</div>
-      <div class="dc-score" style="color:${r.flags.danger ? "var(--bad)" : isPeak ? "var(--peak)" : r.flags.herStrong ? "var(--good)" : r.westHap ? "#e88fc0" : r.lotto1.ok || r.lotto2.ok ? "#5ab4e8" : "var(--ink)"}">${r.score}</div>
-      <div class="dc-flow" style="color:var(--good)">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:#e88fc0">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>${r.lotto1.ok || r.lotto2.ok ? `<div class="dc-flow" style="color:#5ab4e8">🍀 ${r.lotto1.ok && r.lotto2.ok ? "둘 다 로또" : r.lotto1.ok ? "나의 로또" : "그녀 로또"}</div>` : ""}
+      <div class="dc-score" style="color:${r.flags.danger ? "var(--bad)" : isPeak ? "var(--peak)" : r.flags.herStrong ? "var(--good)" : r.westHap ? "#e88fc0" : r.lotto1.ok || r.lotto2.ok ? "#a98bf0" : "var(--ink)"}">${r.score}</div>
+      <div class="dc-flow" style="color:var(--good)">${r.flags.herStrong ? "✿ 합궁" : "&nbsp;"}</div><div class="dc-flow" style="color:#e88fc0">${r.westHap ? "✿ 서양합궁" : "&nbsp;"}</div>${r.lotto1.ok || r.lotto2.ok ? `<div class="dc-flow" style="color:#a98bf0">🍀 ${r.lotto1.ok && r.lotto2.ok ? "둘 다 로또" : r.lotto1.ok ? "나의 로또" : "그녀 로또"}</div>` : ""}
       <div class="dc-day">${r.dayGZ.hanja}</div></div>`;
   }
   const tail = (7 - (lead + daysIn) % 7) % 7;
@@ -37,7 +37,7 @@ function renderDaily() {
     <span><i style="background:rgba(95,185,138,.12);border:1px solid rgba(95,185,138,.35)"></i>✿ 합궁</span>
     <span><i style="background:rgba(232,143,192,.14);border:1px solid rgba(232,143,192,.45)"></i>✿ 서양합궁</span>
     <span><i style="background:rgba(226,101,92,.13);border:1px solid rgba(226,101,92,.4)"></i>⚡ 최고 위험(일지 충 + 일간 극)</span>
-    <span><i style="background:rgba(90,180,232,.14);border:1px solid rgba(90,180,232,.45)"></i>🍀 나의 로또 · 그녀 로또</span>
+    <span><i style="background:rgba(169,139,240,.14);border:1px solid rgba(169,139,240,.45)"></i>🍀 나의 로또 · 그녀 로또</span>
     <span><i style="background:rgba(255,255,255,.03);border:1px solid var(--line2)"></i>그 외 날</span>
     <span>숫자 = 그날의 속궁합 점수(0~100) · 피크이면서 합궁인 날은 금색 칸에 ✿ 표시</span>`;
 
