@@ -153,7 +153,7 @@ function renderAll(only) {
   const t = today();
   ST.calYear = ST.calYear || t.getFullYear(); ST.fYear = ST.fYear || t.getFullYear(); ST.calMonth = ST.calMonth || (t.getMonth() + 1);
   // 보이는 탭만 그린다 — 다른 탭은 switchTab에서 열 때 그린다(첫 화면·저장·필터 속도)
-  const R = { home: renderHome, myeongban: renderMyeongban, couple: renderCouple, daily: renderDaily, western: renderWestern, luck: renderLuck, tojeong: renderTojeong, tarot: renderTarot };
+  const R = { home: renderHome, myeongban: renderMyeongban, couple: renderCouple, daily: renderDaily, western: renderWestern, luck: renderLuck, tojeong: renderTojeong, tarot: renderTarot, shinjeom: renderShinjeom };
   try { R[only || ST.tab](); } catch (e) { console.error(e); }
 }
 
@@ -267,8 +267,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
   $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
-  $("luckPrev").onclick = $("tjPrev").onclick = () => { ST.fYear--; renderAll(); };
-  $("luckNext").onclick = $("tjNext").onclick = () => { ST.fYear++; renderAll(); };
+  $("luckPrev").onclick = $("tjPrev").onclick = $("sjPrev").onclick = () => { ST.fYear--; renderAll(); };
+  $("luckNext").onclick = $("tjNext").onclick = $("sjNext").onclick = () => { ST.fYear++; renderAll(); };
   ["fPeak", "fHerStrong", "fWestHap", "fDanger", "fLotto1", "fLotto2"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try { ST.p1 = calcPerson(ST.profiles[0]); ST.p2 = calcPerson(ST.profiles[1]); }
     catch (e) { console.warn("저장된 프로필 계산 실패 — 다시 설정 필요", e); saveProfiles(null); ST.profiles = null; }
   }
-  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western|luck|tojeong|tarot)$/);
+  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western|luck|tojeong|tarot|shinjeom)$/);
   if (hashTab) switchTab(hashTab[1]);
   if (location.search.includes("selftest")) selfTest().catch(() => {}); // 자동 점검은 ?selftest 일 때만(평소엔 콘솔 await selfTest())
 });

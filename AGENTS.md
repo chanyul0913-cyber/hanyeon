@@ -21,6 +21,7 @@
 | `js/luck.js` | 재물·애정운 탭 (두 사람 12개월 월운 ★, 계산은 engine.js `monthlyLuck`) | |
 | `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
 | `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
+| `js/shinjeom.js` | 신점 탭 (오방기 뽑기 — 전체운 2깃발 + 월별 12깃발, 월운에 따라 가중) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 
 ## 규칙
