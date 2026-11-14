@@ -33,8 +33,8 @@ function gaugeSVG(score, label) {
 }
 
 // 피크·합궁 배지 HTML
-function peakBadge(isPeak, herStrong, westHap) { // 오늘·일별·궁합 분석 공용
-  return (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
+function peakBadge(isPeak, herStrong, westHap, danger) { // 오늘·일별·궁합 분석 공용
+  return (danger ? `<span class="badge b-tension">⚡ 최고 위험</span>` : "") + (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
 }
 const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
 // ---------- 비밀번호 게이트 ----------
@@ -179,7 +179,7 @@ function renderHome() {
       ${gaugeSVG(r.score, r.grade.label)}
       <div class="gauge-label">
         <div class="today-ilju">오늘 일주: ${r.dayGZ.hanja} (${r.dayGZ.ilju}) · ${r.dayGZ.oh}</div>
-        <div style="margin:8px 0 4px">${peakBadge(r.grade.k === "peak", sHap, wHap)}</div>
+        <div style="margin:8px 0 4px">${peakBadge(r.grade.k === "peak", sHap, wHap, r.flags.danger)}</div>
         <div style="font-size:13.5px;margin-bottom:6px">${hapLine}</div>
         <div>${top3.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}</div>
         <div><button id="btnTodayMore" onclick="openDayModal(${ymdOf(t)})">상세 보기 ▸</button></div>
@@ -219,7 +219,7 @@ function openDayModal(ymd) {
     ${w.reasons.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}` : "";
   $("dayDetail").innerHTML = `
     <div class="modal-hd"><b>${ymdStr(ymd)} (${dowK[d.getDay()]}) — ${r.dayGZ.hanja}일 (${r.dayGZ.ilju})</b><button class="modal-x" data-close>✕</button></div>
-    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong, w && w.herStrong)}
+    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong, w && w.herStrong, r.flags.danger)}
       <table class="mini-tbl" style="margin-top:10px">
         <tr><td>나에게 오는 기운</td><td>${esc(ss1.십신)} · ${esc(ss1.운성)}운</td></tr>
         <tr><td>그녀에게 오는 기운</td><td>${esc(ss2.십신)} · ${esc(ss2.운성)}운</td></tr>
@@ -264,7 +264,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
   $("luckPrev").onclick = $("tjPrev").onclick = () => { ST.fYear--; renderAll("luck"); renderAll("tojeong"); };
   $("luckNext").onclick = $("tjNext").onclick = () => { ST.fYear++; renderAll("luck"); renderAll("tojeong"); };
-  ["fPeak", "fHerStrong", "fWestHap"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
+  ["fPeak", "fHerStrong", "fWestHap", "fDanger"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
   loadFromHash();

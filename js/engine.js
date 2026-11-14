@@ -135,7 +135,7 @@ function dailySync(p1, p2, date) {
   const D = d.oh;
   const reasons = [];
   let score = 50;
-  const flags = { tension: false, love: false, charm: false, herStrong: false };
+  const flags = { tension: false, love: false, charm: false, herStrong: false, danger: false };
 
   // 1) 애정 동조일 — 그날의 기가 '나의 재성(여자 운)'이면서 '그녀의 관성(남자 운)'인 날
   if (D === p1.jaeOh && D === p2.gwanOh) { score += 20; flags.love = "mutual"; reasons.push({ t: "애정 동조일", s: +20, x: `그날의 기운(${D})이 나의 재성이자 그녀의 관성 — 두 사람의 애정 기운이 동시에 들어오는 데이트 길일` }); }
@@ -175,6 +175,9 @@ function dailySync(p1, p2, date) {
 
   // 4-1) 합궁(✿) — 그날 오행이 그녀 일간을 生(인성)하거나 같은 오행(비견)인 날 +8
   if (i2 === 1 || D === fOh) { flags.herStrong = true; score += 8; reasons.push({ t: "합궁일(✿)", s: +8, x: i2 === 1 ? `그날의 ${D} 기운이 그녀의 ${fOh} 일간을 生 — 그녀가 채워져 여유 있고 덜 지치는 날` : `그날이 그녀와 같은 ${fOh} 기운 — 그녀가 스스로 힘이 있는 날` }); }
+
+  // 4-2) 최고 위험일(⚡) — 그날 일지가 누군가의 일지와 충 + 그날 천간이 누군가의 일간을 극. 표시용, 점수는 충·극 항목에 이미 반영
+  if ([r1, r2].some(x => x && x.r === "충") && (i1 === -1 || i2 === -1)) { flags.danger = true; reasons.push({ t: "최고 위험일(⚡)", s: 0, x: "일지 충과 일간 극이 겹치는 날 — 만나거나 통화할 때 감정이 가장 부딪히기 쉬운 날. 예민한 이야기는 미루고 말투를 부드럽게" }); }
 
   // 5) 용신(부족 오행)이 들어오는 날
   if (D === p1.yongsin) { score += 6; reasons.push({ t: "나의 용신일", s: +6, x: `내 사주에 가장 부족한 ${p1.yongsin} 오행이 그날에 들어옴 — 균형이 맞아가는 날` }); }

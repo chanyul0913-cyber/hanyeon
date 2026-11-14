@@ -71,16 +71,19 @@ async function selfTest() {
   // 10-1) 합성 커플(남=수 일간, 여=금 일간) — 화일 애정 동조, 합궁(✿)은 토·금일만
   const fk1 = { name: "합성남", dmGan: 8, dmJi: 8, dmOh: "수", jaeOh: OH_KEUK["수"], gwanOh: ohKeukMe("수"), yongsin: "목", cnt: { 목: 0, 화: 1, 토: 2, 금: 2, 수: 3 } };
   const fk2 = { name: "합성녀", dmGan: 7, dmJi: 9, dmOh: "금", jaeOh: OH_KEUK["금"], gwanOh: ohKeukMe("금"), yongsin: "수", cnt: { 목: 1, 화: 0, 토: 1, 금: 4, 수: 1 } };
-  let fLove = 0;
+  let fLove = 0, fDanger = 0;
   d = new Date(2026, 0, 1, 12);
   for (let i = 0; i < 200; i++) {
     const r = dailySync(fk1, fk2, d);
     if (r.flags.love) fLove++;
     eq(!!r.flags.herStrong, ["토", "금"].includes(r.dayGZ.oh), "그녀합궁" + r.date);
+    const chung = r.reasons.some(q => /일지와 충/.test(q.t)), keuk = r.reasons.some(q => /긴장 유입\(관살\)/.test(q.t));
+    eq(r.flags.danger, chung && keuk, "최고위험" + r.date);
+    if (r.flags.danger) fDanger++;
     ok(r.score >= 0 && r.score <= 100);
     d = addDays(d, 1);
   }
-  ok(fLove > 0);
+  ok(fLove > 0); ok(fDanger > 0 && fDanger < 40); // 200일 중 최고 위험일은 있되 드물어야
   const fc = coupleFixed(fk1, fk2);
   ok(fc.score >= 0 && fc.score <= 100);
 
