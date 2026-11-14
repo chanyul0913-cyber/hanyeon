@@ -33,9 +33,10 @@ function gaugeSVG(score, label) {
 }
 
 // 피크·합궁 배지 HTML
-function peakBadge(isPeak, herStrong) { // 오늘·일별·서양 일별 공용
-  return (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "");
+function peakBadge(isPeak, herStrong, westHap) { // 오늘·일별·궁합 분석 공용
+  return (isPeak ? `<span class="badge b-love">⭐ 피크</span>` : "") + (herStrong ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (westHap ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
 }
+const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
 // ---------- 비밀번호 게이트 ----------
 async function tryUnlock() {
   const pw = $("lockPass").value.trim();
@@ -148,7 +149,6 @@ function renderAll(only) {
     if (!only || only === "myeongban") renderMyeongban();
     if (!only || only === "couple") renderCouple();
     if (!only || only === "daily") renderDaily();
-    if (!only || only === "wdaily") renderWdaily();
     if (!only || only === "western") renderWestern();
   } catch (e) { console.error(e); }
 }
@@ -169,7 +169,7 @@ function renderHome() {
         <div class="today-ilju">오늘 일주: ${r.dayGZ.hanja} (${r.dayGZ.ilju}) · ${r.dayGZ.oh}</div>
         <div style="margin:8px 0 6px">${peakBadge(r.grade.k === "peak", r.flags.herStrong)}</div>
         <div>${top3.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}</div>
-        ${w ? `<div class="rank-row" onclick="openWestDayModal(${w.date})" style="margin-top:6px"><span class="today-ilju">서양 일별 궁합</span><span class="today-date">☾ ${w.moon ? esc(w.moon.sign) : ""}</span><span style="flex:1">${peakBadge(w.grade.k === "peak", w.herStrong)}</span><b style="font-family:var(--serif);font-size:16px">${w.score}</b></div>` : ""}
+        ${w ? `<div class="rank-row" onclick="openDayModal(${w.date})" style="margin-top:6px"><span class="today-ilju">서양 점성술</span><span class="today-date">☾ ${w.moon ? esc(w.moon.sign) : ""}</span><span style="flex:1">${peakBadge(false, false, w.herStrong)}</span><b style="font-family:var(--serif);font-size:16px">${w.score}</b></div>` : ""}
         <div><button id="btnTodayMore" onclick="openDayModal(${ymdOf(t)})">상세 보기 ▸</button></div>
       </div>
     </div></div>`;
@@ -180,19 +180,19 @@ function renderHome() {
   const peaks = [...list].sort((a, b) => b.score - a.score).slice(0, 5);
   $("homePeak").innerHTML = `<div class="card"><div class="sec-t">다가올 특별한 날 TOP 5 <small>(향후 60일)</small></div>
     ${peaks.map((x, i) => `<div class="rank-row" onclick="openDayModal(${x.date})"><span class="rk">${i + 1}</span><span class="today-ilju">${fmtYMD(x.date)}</span>
-      <span class="today-date">${x.dayGZ.hanja}(${x.dayGZ.ilju})</span><span style="flex:1">${peakBadge(x.grade.k === "peak", x.flags.herStrong)}</span>
+      <span class="today-date">${x.dayGZ.hanja}(${x.dayGZ.ilju})</span><span style="flex:1">${peakBadge(x.grade.k === "peak", x.flags.herStrong, westOf(new Date(Math.floor(x.date / 10000), Math.floor(x.date / 100) % 100 - 1, x.date % 100, 12))?.herStrong)}</span>
       <b style="font-family:var(--serif);font-size:16px">${x.score}</b></div>`).join("")}</div>`;
 
-  // 합방합궁 — 향후 30일: 사주 합궁(✿)·서양 합궁(✿), 둘 다인 날 먼저
+  // 합방합궁 — 향후 30일: 합궁(✿)·서양합궁(✿), 둘 다인 날 먼저
   const days = list.slice(0, 30).map(x => {
     const wx = hasW ? dailyWestSync(ST.p1, ST.p2, new Date(Math.floor(x.date / 10000), Math.floor(x.date / 100) % 100 - 1, x.date % 100, 12)) : null;
     return { x, saju: !!x.flags.herStrong, west: !!(wx && wx.herStrong) };
   });
   const both = days.filter(o => o.saju && o.west), any = days.filter(o => o.saju || o.west);
   const pick = [...both, ...any.filter(o => !(o.saju && o.west))].slice(0, 10).sort((a, b) => a.x.date - b.x.date);
-  const tag = o => (o.saju ? `<span class="badge b-charge">✿ 사주 합궁</span>` : "") + (o.west ? `<span class="badge b-flow">✿ 서양 합궁</span>` : "");
+  const tag = o => (o.saju ? `<span class="badge b-charge">✿ 합궁</span>` : "") + (o.west ? `<span class="badge b-flow">✿ 서양합궁</span>` : "");
   $("homeFlow").innerHTML = `<div class="card"><div class="sec-t">합방합궁 — 향후 30일</div>
-    <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 사주 합궁</b> ${days.filter(o => o.saju).length}일${hasW ? ` · <b style="color:var(--su)">✿ 서양 합궁</b> ${days.filter(o => o.west).length}일 · <b style="color:var(--gold2)">둘 다</b> ${both.length}일` : ""}</div>
+    <div style="font-size:13px;margin-bottom:6px"><b style="color:var(--su)">✿ 합궁</b> ${days.filter(o => o.saju).length}일${hasW ? ` · <b style="color:var(--su)">✿ 서양합궁</b> ${days.filter(o => o.west).length}일 · <b style="color:var(--gold2)">둘 다</b> ${both.length}일` : ""}</div>
     ${pick.length ? pick.map(o => `<div class="rank-row" onclick="openDayModal(${o.x.date})"><span class="today-ilju">${fmtYMD(o.x.date)}</span><span class="today-date">${o.x.dayGZ.hanja}</span><span style="flex:1">${tag(o)}</span><b style="font-family:var(--serif);font-size:16px">${o.x.score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">향후 30일 안에 합궁일이 없습니다.</span></div>'}</div>`;
 }
 
@@ -201,16 +201,20 @@ function openDayModal(ymd) {
   const d = new Date(Math.floor(ymd / 10000), Math.floor(ymd / 100) % 100 - 1, ymd % 100, 12);
   const r = dailySync(ST.p1, ST.p2, d);
   const reasons = r.reasons.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("");
-  const ss1 = r.ss1, ss2 = r.ss2;
+  const ss1 = r.ss1, ss2 = r.ss2, w = westOf(d);
+  const wPart = w ? `<div class="sec-t">서양 점성술 <small>(오늘의 행성 × 두 출생 차트)</small></div>
+    <div class="reason"><span class="rt">서양 점수 ${w.score} · ☾ ${w.moon ? esc(w.moon.sign) : ""}</span><span class="rs">${peakBadge(false, false, w.herStrong)}</span></div>
+    ${w.reasons.map(x => `<div class="reason"><span class="rt">${esc(x.t)}</span><span class="rs" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span><div class="rx">${esc(x.x)}</div></div>`).join("")}` : "";
   $("dayDetail").innerHTML = `
     <div class="modal-hd"><b>${ymdStr(ymd)} (${dowK[d.getDay()]}) — ${r.dayGZ.hanja}일 (${r.dayGZ.ilju})</b><button class="modal-x" data-close>✕</button></div>
-    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong)}
+    <div class="gauge-wrap" style="margin-bottom:12px">${gaugeSVG(r.score, r.grade.label)}<div class="gauge-label">${peakBadge(r.grade.k === "peak", r.flags.herStrong, w && w.herStrong)}
       <table class="mini-tbl" style="margin-top:10px">
         <tr><td>나에게 오는 기운</td><td>${esc(ss1.십신)} · ${esc(ss1.운성)}운</td></tr>
         <tr><td>그녀에게 오는 기운</td><td>${esc(ss2.십신)} · ${esc(ss2.운성)}운</td></tr>
         ${r.ss.length ? `<tr><td>신살</td><td>${r.ss.map(x => esc(`${x.who}: ${x.name}`)).join(" · ")}</td></tr>` : ""}
       </table></div></div>
     <div class="sec-t">점수 근거</div>${reasons || '<div class="reason">특별한 작용 없는 고요한 날</div>'}
+    ${wPart}
     <div class="sec-t">조언</div><div class="reason">${esc(dayAdvice(r))}</div>`;
   $("modalDay").hidden = false;
   $("dayDetail").querySelectorAll("[data-close]").forEach(b => b.onclick = () => $("modalDay").hidden = true);
@@ -244,12 +248,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.setItem(LS_PASS, await sha256hex(np));
     $("newPass").value = ""; alert("비밀번호를 변경했습니다. (이 브라우저에만 적용)");
   };
-  $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); renderAll("wdaily"); };
-  $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); renderAll("wdaily"); };
-  $("wCalPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("wdaily"); };
-  $("wCalNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("wdaily"); };
-  ["fPeak", "fHerStrong"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
-  ["wPeak", "wHerStrong"].forEach(id => { $(id).onchange = () => renderAll("wdaily"); });
+  $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
+  $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
+  ["fPeak", "fHerStrong", "fWestHap"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
   loadFromHash();
@@ -258,7 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try { ST.p1 = calcPerson(ST.profiles[0]); ST.p2 = calcPerson(ST.profiles[1]); }
     catch (e) { console.warn("저장된 프로필 계산 실패 — 다시 설정 필요", e); saveProfiles(null); ST.profiles = null; }
   }
-  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|wdaily|western)$/);
+  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western)$/);
   if (hashTab) switchTab(hashTab[1]);
   selfTest().catch(() => {});
 });

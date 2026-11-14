@@ -140,11 +140,3 @@ function dailyWestSync(p1, p2, date) {
   if (herStrong) reasons.push({ t: "합궁일(✿)", s: 0, x: "오늘의 달(감정)·금성(애정)이 그녀의 출생 차트를 조화각으로만 비춤 — 그녀가 편안하고 덜 지치는 날" });
   return { date: ymdOf(date), dow: date.getDay(), score, grade, reasons, aspects, syncList, moon, herStrong };
 }
-
-function westDayAdvice(r) {
-  if (r.grade.k === "peak") return "행성들이 두 사람의 차트를 모두 부드럽게 통과하는 날. 함께 있는 시간, 약속, 대화 모두 잘 풀립니다.";
-  if (r.grade.k === "good") return "전반적으로 순조로운 하늘. 사소한 오해는 자연스럽게 풀립니다.";
-  if (r.grade.k === "normal") return "무난한 하루. 특별한 조화나 긴장 없이 평소의 리듬을 유지하면 됩니다.";
-  if (r.grade.k === "care") return "행성의 긴장각이 살짝 있는 날. 약속 변경·계획 차이에 여유를 갖고 대응하세요.";
-  return "행성 긴장이 강한 날. 감정적 반응을 한 템포 늦추면 부딪힘을 피할 수 있습니다.";
-}
