@@ -58,7 +58,7 @@ async function tryUnlock() {
 }
 function initLock() {
   $("lockBtn").onclick = tryUnlock;
-  $("lockPass").onkeydown = e => { if (e.key === "Enter") tryUnlock(); };
+  $("lockPass").onkeydown = e => { if (e.key === "Enter" && !e.isComposing) tryUnlock(); }; // 한글 조합 중 Enter는 무시
   $("lockPass").focus();
 }
 
