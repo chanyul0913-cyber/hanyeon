@@ -17,7 +17,7 @@
 | `js/chart.js` | 명반 탭 렌더링 (사주 8자·오행·십신·대운) | |
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
 | `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크·합궁·일 상세 모달) | |
-| `js/western.js` | 서양 점성술 synastry (행성 아스펙트, astronomy-engine 있을 때만) | |
+| `js/western.js` | 서양 점성술: synastry + **트랜짓 일별 궁합**(`dailyWestSync` — 오늘의 행성×출생 차트 아스펙트) + 합궁·로또 판정(`lottoOf`·`westMoney`), natal/transit 캐시. astronomy-engine 있을 때만 | |
 | `js/luck.js` | 재물·애정운 탭 (두 사람 12개월 월운 ★, 계산은 engine.js `monthlyLuck`) | |
 | `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
 | `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
@@ -30,8 +30,8 @@
 - 개발 확인: 폴더에서 `python -m http.server 8890` → http://localhost:8890 (8790은 AI로또가 사용)
 - 콘솔에서 `await selfTest()` → `ok: true`여야 함. 페이지 열 때 자동 실행은 주소에 `?selftest`를 붙였을 때만.
 - 렌더링은 보이는 탭만(`renderAll()` = 현재 탭, `switchTab`이 열 때 그림). 새 탭을 추가하면 `renderAll`의 표(R)와 `switchTab` 해시 정규식에 등록.
-- 서비스 워커: 페이지(HTML)는 네트워크 우선, js·css는 `?v=N` 정확 일치 캐시. 배포 때 `sw.js`의 `CACHE` 이름도 올린다.
-- 사주 계산은 오직 `js/engine.js`를 통해서만 — 개별 파일에서 직접 lunar.js 호출 금지.
+- 서비스 워커: 페이지(HTML)는 네트워크 우선, js·css는 `?v=N` 정확 일치 캐시. **설치 시 index.html에서 `?v=N` URL을 파싱해 워밍**하므로 sw.js에 자산 목록을 따로 관리하지 않는다. js·css 내용을 바꿨으면 `?v=N`을 올리고 `sw.js`의 `CACHE` 이름도 올린다.
+- 사주 계산은 오직 `js/engine.js`를 통해서만 — 개별 파일에서 직접 lunar.js 호출 금지. 계산 파일(engine·western·selftest)은 UI 파일(app.js)의 함수를 쓰지 않는다(공용 유틸 `josa`·`randN`은 engine.js, `esc`만 app.js). Node에서도 돌아야 하므로 window 의존은 라이브러리 노출(Solar·Lunar·LunarYear·Astronomy)만.
 - 서울 태양시 30분 보정(동경 135° vs 127°) 규칙 유지.
 - 시간을 모르면 시주를 계산하지 않는다(12:00 가정 표시 없이 `시주: 모름`).
 - 비밀번호 잠금 없음(사용자 요청으로 제거). 생년월일은 각 브라우저 localStorage에만 저장.

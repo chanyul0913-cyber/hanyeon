@@ -48,8 +48,8 @@ function renderWestern() {
     $("westernSynastry").innerHTML = `<div class="card"><div class="sec-t">행성 아스펙트 (synastry)</div><div class="reason">행성 계산 실패: ${esc(e.message)}</div></div>`;
     return;
   }
-  const prT = (who, pos) => `<div class="card"><div class="sec-t">${esc(who)}의 행성 위치</div><table class="mini-tbl">
-    ${pos.map(x => `<tr><td>${x.ko} <small>(${x.mean})</small></td><td><b>${x.elon.toFixed(1)}°</b> · ${esc(x.sign)}${p1.profile.h === "" && who === esc(p1.name) || p2.profile.h === "" && who === esc(p2.name) ? ' <small>(시간 모름 — 정오 근사)</small>' : ""}</td></tr>`).join("")}</table></div>`;
+  const prT = (p, pos) => `<div class="card"><div class="sec-t">${esc(p.name)}의 행성 위치</div><table class="mini-tbl">
+    ${pos.map(x => `<tr><td>${x.ko} <small>(${x.mean})</small></td><td><b>${x.elon.toFixed(1)}°</b> · ${esc(x.sign)}${p.profile.h === "" ? ' <small>(시간 모름 — 정오 근사)</small>' : ""}</td></tr>`).join("")}</table></div>`;
   const marks = [];
   let score = 50;
   for (const a of pos1) for (const b of pos2) {
@@ -65,7 +65,7 @@ function renderWestern() {
         <div class="gauge-label"><div style="font-size:13.5px;color:var(--sub)">두 사람의 태양·달·금성·화성이 만드는 각(아스펙트)을 합산한 점수입니다.
         사주 궁합과 별개의 체계이며, <b style="color:var(--gold2)">합·백이십이 많으면 자연스럽고</b>, 구십·대립이 많으면 자극적이고 배우는 관계입니다.</div></div></div>
       ${marks.length ? marks.map(mkRow).join("") : '<div class="reason">뚜렷한 아스펙트가 없습니다 — 서로의 에너지가 직접 얽히지 않는 자유로운 관계입니다.</div>'}</div>
-    <div class="grid2">${prT(p1.name, pos1)}${prT(p2.name, pos2)}</div>`;
+    <div class="grid2">${prT(p1, pos1)}${prT(p2, pos2)}</div>`;
 }
 
 // ---------- 서양 일별 궁합 (트랜짓 기반) ----------
@@ -85,8 +85,9 @@ function natalOf(p) { // 출생 차트 행성 위치 (사람당 1회 계산 후 
   if (!NATAL_CACHE.has(p)) NATAL_CACHE.set(p, westPositions(p));
   return NATAL_CACHE.get(p);
 }
-function transitsOf(date) { // 그날의 행성 위치 (날짜당 1회 계산 후 캐시)
+function transitsOf(date) { // 그날의 행성 위치 (날짜당 1회 계산 후 캐시 — 너무 커지면 비워 메모리 위생)
   const k = ymdOf(date);
+  if (TRANSIT_CACHE.size > 500) TRANSIT_CACHE.clear();
   if (!TRANSIT_CACHE.has(k)) {
     const A = window.Astronomy, d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
     TRANSIT_CACHE.set(k, WEST_PLANETS.map(x => {

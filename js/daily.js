@@ -10,7 +10,6 @@ function renderDaily() {
   // 이달 전체 계산
   const data = [];
   for (let d = 1; d <= daysIn; d++) { const dt = new Date(y, m - 1, d, 12), r = dailySync(ST.p1, ST.p2, dt); const w = westOf(dt); r.westHap = !!w?.herStrong; r.lotto1 = lottoOf(ST.p1, 1, dt, w); r.lotto2 = lottoOf(ST.p2, 2, dt, w); data.push(r); }
-  const byYmd = Object.fromEntries(data.map(r => [r.date, r]));
 
   // 캘린더 셀
   let cells = dowK.map((k, i) => `<div class="dow ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${k}</div>`).join("");

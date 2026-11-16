@@ -20,7 +20,7 @@ function pickFlag(r, mood, skip) { // mood: 그 기간 운의 기울기(−2~+2)
 
 function drawShinjeom() {
   const male = (ST.sjWho || "m") === "m", p = male ? ST.p1 : ST.p2, Y = ST.fYear;
-  const rnd = new Uint32Array(14); crypto.getRandomValues(rnd);
+  const rnd = randN(14); // engine.js — crypto 없는 환경 폴백 포함
   const r = i => rnd[i] / 4294967296;
   const months = [];
   for (let m = 1; m <= 12; m++) { const L = monthlyLuck(p, male, Y, m); months.push({ m, gz: L.gz, f: pickFlag(r(m + 1), (L.wealth + L.love) / 2 - 3) }); }

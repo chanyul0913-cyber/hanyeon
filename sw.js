@@ -1,13 +1,20 @@
 // 합연 — 서비스 워커: 로컬 자산 캐시(오프라인 사용). https 배포 환경에서만 app.js가 등록한다.
+// 설치 시 index.html을 읽어 그때의 js/*.js?v=N·style.css?v=N "정확한 버전 URL"을 워밍한다.
+// (정적 목록에 버전 없는 URL을 넣으면 ?v=N 요청과 매칭되지 않아 설치 캐시가 무용지물이 된다)
 "use strict";
-const CACHE = "hanyeon-v36";
-const ASSETS = [
-  "./", "index.html", "style.css", "manifest.webmanifest", "icon.svg",
-  "js/app.js", "js/chart.js", "js/couple.js", "js/daily.js", "js/western.js", "js/luck.js", "js/tojeong.js", "js/tarot.js", "js/shinjeom.js", "js/engine.js", "js/selftest.js",
-  "js/vendor/lunar.js", "js/vendor/astronomy.js"
-];
+const CACHE = "hanyeon-v37";
+const CORE = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(CORE);
+    try { // 새 index.html에서 js·css 링크를 뽑아 개별 워밍 — 하나가 실패해도 설치는 계속
+      const html = await (await fetch("index.html", { cache: "no-store" })).text();
+      const urls = [...new Set([...html.matchAll(/(?:src|href)="([^"]*(?:js\/|style\.css)[^"]*)"/g)].map(m => m[1]))];
+      await Promise.allSettled(urls.map(async u => { const res = await fetch(u, { cache: "no-store" }); if (res.ok) await c.put(u, res.clone()); }));
+    } catch {}
+    await self.skipWaiting();
+  })());
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));

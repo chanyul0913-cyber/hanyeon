@@ -30,7 +30,7 @@ const TAROT = [
 const TAROT_POS = ["과거 — 그동안 나를 어떻게 느껴 왔나", "현재 — 지금 나를 향한 마음", "미래 — 앞으로 마음이 향하는 곳"];
 
 function drawTarot() {
-  const r = new Uint32Array(6); crypto.getRandomValues(r);
+  const r = randN(6); // engine.js — crypto 없는 환경 폴백 포함
   const pool = TAROT.map((_, i) => i), pick = [];
   for (let k = 0; k < 3; k++) pick.push({ i: pool.splice(r[k] % pool.length, 1)[0], rev: r[k + 3] % 2 === 1 });
   ST.tarot = pick;

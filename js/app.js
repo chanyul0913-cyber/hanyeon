@@ -1,6 +1,6 @@
 "use strict";
 // 합연 — 앱 컨트롤러: 입력·공유 링크·탭·오늘 탭 렌더링.
-// 각 탭의 실제 렌더링은 chart.js(명반)·couple.js(궁합)·daily.js(일별)·western.js(서양)가 ST를 읽어 한다.
+// 각 탭의 실제 렌더링은 chart.js·couple.js·daily.js·western.js·luck.js·tojeong.js·tarot.js·shinjeom.js가 ST를 읽어 한다.
 
 // ---------- 전역 상태 ----------
 const LS_PROFILES = "hanyeon_profiles";
@@ -8,7 +8,7 @@ const ST = { profiles: null, p1: null, p2: null, calYear: 0, calMonth: 0, tab: "
 const today = () => new Date();
 
 // ---------- 공용 유틸 ----------
-const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? a : b); }; // 받침 있으면 a(이·은·을·과), 없으면 b
+// josa는 계산 엔진(engine.js) 쪽에 정의 — 계산 파일이 UI(app.js)에 의존하지 않게 하기 위함
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const $ = id => document.getElementById(id);
 const ymdStr = n => `${Math.floor(n / 10000)}-${String(Math.floor(n / 100) % 100).padStart(2, "0")}-${String(n % 100).padStart(2, "0")}`;
@@ -228,6 +228,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("btnShare").onclick = shareLink;
   $("btnSaveProfile").onclick = saveFromForms;
   document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".modal").hidden = true);
+  // 모달 닫기 강화 — ESC 키·배경(어두운 오버레이) 클릭으로도 닫히게
+  document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelectorAll(".modal:not([hidden])").forEach(m => m.hidden = true); });
+  document.querySelectorAll(".modal").forEach(m => m.onclick = e => { if (e.target === m) m.hidden = true; });
   ["form1", "form2"].forEach(id => { const f = $(id); f.nohour.onchange = () => { f.h.disabled = f.mi.disabled = f.nohour.checked; if (f.nohour.checked) { f.h.value = ""; } }; });
   document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => switchTab(b.dataset.tab));
   $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };

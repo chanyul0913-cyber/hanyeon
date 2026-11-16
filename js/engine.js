@@ -72,10 +72,13 @@ function shiShen(dmGan, gan) {
 }
 const SHISHEN_COLOR = { 비견: "#8fbf9f", 겁재: "#b98f8f", 식신: "#9fb98f", 상관: "#b9a28f", 편재: "#c8a95f", 정재: "#d3a94e", 편관: "#b96f5f", 정관: "#c86f5f", 편인: "#8f9fb9", 정인: "#5d9fd6" };
 
-// ---------- 달력 유틸 ----------
+// ---------- 달력·문자 유틸 ----------
 const ymdOf = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 const addDays = (d, n) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); x.setDate(x.getDate() + n); return x; };
 const dowK = ["일", "월", "화", "수", "목", "금", "토"];
+const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? a : b); }; // 받침 있으면 a(이·은·을·과), 없으면 b
+// 암호학적 난수 n개 — 신점·타로 뽑기용. crypto가 없는 환경에서는 Math.random으로 폴백(재미용이라 충분)
+const randN = n => { const a = new Uint32Array(n); try { crypto.getRandomValues(a); } catch { for (let i = 0; i < n; i++) a[i] = Math.floor(Math.random() * 4294967296); } return a; };
 
 // ---------- 사람 사주 계산 ----------
 // profile: {name, y, m, d, cal:"solar"|"lunar", leap:boolean, h:""|"0..23", mi:number}
