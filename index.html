@@ -10,23 +10,11 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230b0f1a'/%3E%3Ctext x='32' y='42' font-size='34' text-anchor='middle' fill='%23d4af37'%3E合%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" integrity="sha384-GIdEBaqGN9mNkDkMkzMHW8EKUqtpPIe/sLj1X7DIrnc9uPtLROJgmuDlh+3rBw0j" crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
-<!-- 비밀번호 게이트 -->
-<div id="lock" class="lock">
-  <div class="lock-card">
-    <div class="lock-mark">合</div>
-    <div class="lock-title">合緣 합연</div>
-    <div class="lock-sub">두 사람만의 궁합 기록 · 비밀번호를 입력하세요</div>
-    <input id="lockPass" type="password" inputmode="numeric" autocomplete="off" placeholder="비밀번호">
-    <button id="lockBtn">들어가기</button>
-    <div id="lockMsg" class="lock-msg"></div>
-  </div>
-</div>
-
-<div id="app" hidden>
+<div id="app">
   <header class="hd">
     <div class="brand"><span class="brand-mark">合</span><b>合緣 합연</b><small>두 사람의 사주가 만나는 날</small></div>
     <div class="hd-btns">
@@ -153,10 +141,6 @@
     <div class="modal-btns">
       <button id="btnSaveProfile" class="primary">저장하고 계산하기</button>
     </div>
-    <details class="pwbox">
-      <summary>비밀번호 변경 (이 브라우저에만 적용)</summary>
-      <div class="inl"><input id="newPass" type="password" inputmode="numeric" placeholder="새 비밀번호"><button id="btnChangePass">변경</button></div>
-    </details>
   </div>
 </div>
 
@@ -168,7 +152,7 @@
 <script src="js/vendor/lunar.js"></script>
 <script src="js/vendor/astronomy.js"></script>
 <script src="js/engine.js?v=34"></script>
-<script src="js/app.js?v=34"></script>
+<script src="js/app.js?v=35"></script>
 <script src="js/chart.js?v=20"></script>
 <script src="js/couple.js?v=21"></script>
 <script src="js/daily.js?v=34"></script>

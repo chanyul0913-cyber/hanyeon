@@ -26,14 +26,6 @@ small { color: var(--sub); }
 h3 { margin: 0 0 10px; font-weight: 700; }
 
 /* ---------- 잠금 화면 ---------- */
-.lock { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: inherit; z-index: 100; }
-.lock-card { text-align: center; padding: 42px 36px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); backdrop-filter: blur(6px); width: min(92vw, 380px); }
-.lock-mark { font-family: var(--serif); font-size: 54px; font-weight: 900; color: var(--gold); line-height: 1; }
-.lock-title { font-family: var(--serif); font-size: 22px; font-weight: 900; margin-top: 8px; }
-.lock-sub { color: var(--sub); font-size: 13px; margin: 8px 0 18px; }
-.lock-card input { width: 100%; text-align: center; letter-spacing: 6px; font-size: 18px; margin-bottom: 12px; }
-.lock-card button { width: 100%; padding: 10px; }
-.lock-msg { color: var(--bad); font-size: 13px; margin-top: 10px; min-height: 18px; }
 
 /* ---------- 헤더·탭 ---------- */
 .hd { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; max-width: 1060px; margin: 0 auto; }
@@ -155,8 +147,6 @@ main { max-width: 1060px; margin: 0 auto; padding: 18px 16px 8px; }
 .ymd input, .hm input { text-align: center; }
 .set-msg { color: var(--bad); font-size: 13px; min-height: 18px; margin-top: 8px; }
 .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
-.pwbox { margin-top: 14px; color: var(--sub); font-size: 12.5px; }
-.pwbox summary { cursor: pointer; }
 
 /* ---------- 푸터 ---------- */
 .ft { max-width: 1060px; margin: 18px auto 0; padding: 14px 18px 26px; border-top: 1px solid var(--line2); color: var(--sub); font-size: 12px; }

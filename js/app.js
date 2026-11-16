@@ -1,10 +1,9 @@
 "use strict";
-// 합연 — 앱 컨트롤러: 비밀번호 게이트·입력·공유 링크·탭·오늘 탭 렌더링.
+// 합연 — 앱 컨트롤러: 입력·공유 링크·탭·오늘 탭 렌더링.
 // 각 탭의 실제 렌더링은 chart.js(명반)·couple.js(궁합)·daily.js(일별)·western.js(서양)가 ST를 읽어 한다.
 
 // ---------- 전역 상태 ----------
-const LS_PROFILES = "hanyeon_profiles", LS_PASS = "hanyeon_pass";
-const DEFAULT_PASS_SHA256 = "d3cf6b77fdeae5ff43871acc766c91e3bca9b7d3b3a6c8c073d1ec0751df786d"; // 기본 비밀번호 0817
+const LS_PROFILES = "hanyeon_profiles";
 const ST = { profiles: null, p1: null, p2: null, calYear: 0, calMonth: 0, tab: "home" };
 const today = () => new Date();
 
@@ -15,11 +14,6 @@ const $ = id => document.getElementById(id);
 const ymdStr = n => `${Math.floor(n / 10000)}-${String(Math.floor(n / 100) % 100).padStart(2, "0")}-${String(n % 100).padStart(2, "0")}`;
 const fmtYMD = n => `${Math.floor(n / 100) % 100}/${String(n % 100).padStart(2, "0")}(${dowK[new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100).getDay()]})`;
 const gradeCls = k => ({ peak: "grade-peak", good: "grade-good", normal: "grade-normal", care: "grade-care", bad: "grade-bad" }[k] || "grade-normal");
-
-async function sha256hex(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
 
 // 원형 게이지 SVG
 function gaugeSVG(score, label) {
@@ -40,28 +34,6 @@ function peakBadge(isPeak, herStrong, westHap, danger) { // 오늘·일별·궁�
 const lottoName = p => p === ST.p1 ? "🍀 남자로또" : "🍀 여자로또"; // 설정의 '남자'·'여자' 칸 기준 — 누가 입력·조회해도 같은 뜻
 const lottoBadge = (l1, l2) => (l1 && l1.ok ? `<span class="badge b-lotto">${lottoName(ST.p1)}</span>` : "") + (l2 && l2.ok ? `<span class="badge b-lotto">${lottoName(ST.p2)}</span>` : "");
 const westOf = date => window.Astronomy ? dailyWestSync(ST.p1, ST.p2, date) : null; // 서양합궁 판정용 (astronomy.js 없으면 null)
-// ---------- 비밀번호 게이트 ----------
-async function tryUnlock() {
-  const pw = $("lockPass").value.trim();
-  if (!pw) return;
-  const h = await sha256hex(pw);
-  const target = localStorage.getItem(LS_PASS) || DEFAULT_PASS_SHA256;
-  if (h === target) {
-    $("lock").style.display = "none";
-    $("app").hidden = false;
-    renderAll();
-  } else {
-    $("lockMsg").textContent = "비밀번호가 맞지 않습니다.";
-    $("lockPass").value = "";
-    $("lockPass").focus();
-  }
-}
-function initLock() {
-  $("lockBtn").onclick = tryUnlock;
-  $("lockPass").onkeydown = e => { if (e.key === "Enter" && !e.isComposing) tryUnlock(); }; // 한글 조합 중 Enter는 무시
-  $("lockPass").focus();
-}
-
 // ---------- 프로필(생년월일) ----------
 function loadProfiles() {
   try { const j = localStorage.getItem(LS_PROFILES); return j ? JSON.parse(j) : null; } catch { return null; }
@@ -120,7 +92,7 @@ async function shareLink() {
   if (!ST.profiles) { alert("먼저 설정에서 두 사람의 생년월일을 저장하세요."); return; }
   const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(ST.profiles)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const url = location.href.split("#")[0] + "#d=" + b64;
-  try { await navigator.clipboard.writeText(url); alert("공유 링크를 복사했습니다.\n상대가 이 링크를 열면 생년월일이 자동으로 채워집니다. (비밀번호도 필요)"); }
+  try { await navigator.clipboard.writeText(url); alert("공유 링크를 복사했습니다.\n상대가 이 링크를 열면 생년월일이 자동으로 채워집니다."); }
   catch { prompt("아래 링크를 복사해 보내세요:", url); }
 }
 function loadFromHash() {
@@ -252,19 +224,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (location.protocol === "https:" && !/localhost|127\.0\.0\.1/.test(location.hostname) && navigator.serviceWorker) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
-  initLock();
   $("btnSettings").onclick = openSettings;
   $("btnShare").onclick = shareLink;
   $("btnSaveProfile").onclick = saveFromForms;
   document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".modal").hidden = true);
   ["form1", "form2"].forEach(id => { const f = $(id); f.nohour.onchange = () => { f.h.disabled = f.mi.disabled = f.nohour.checked; if (f.nohour.checked) { f.h.value = ""; } }; });
   document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => switchTab(b.dataset.tab));
-  $("btnChangePass").onclick = async () => {
-    const np = $("newPass").value.trim();
-    if (np.length < 4) { alert("4자 이상으로 입력하세요."); return; }
-    localStorage.setItem(LS_PASS, await sha256hex(np));
-    $("newPass").value = ""; alert("비밀번호를 변경했습니다. (이 브라우저에만 적용)");
-  };
   $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
   $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
   $("luckPrev").onclick = $("tjPrev").onclick = $("sjPrev").onclick = () => { ST.fYear--; renderAll(); };
@@ -279,6 +244,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     catch (e) { console.warn("저장된 프로필 계산 실패 — 다시 설정 필요", e); saveProfiles(null); ST.profiles = null; }
   }
   const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western|luck|tojeong|tarot|shinjeom)$/);
-  if (hashTab) switchTab(hashTab[1]);
+  if (hashTab) switchTab(hashTab[1]); else renderAll(); // 잠금 없이 바로 표시(프로필 없으면 설정 창이 열림)
   if (location.search.includes("selftest")) selfTest().catch(() => {}); // 자동 점검은 ?selftest 일 때만(평소엔 콘솔 await selfTest())
 });
