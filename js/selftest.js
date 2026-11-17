@@ -118,8 +118,9 @@ async function selfTest() {
   if (window.Astronomy && typeof dailyWestSync === "function") {
     let wSync = 0, wLotto = 0; d = new Date(2026, 10, 15, 12);
     for (let i = 0; i < 365; i++) {
-      const r = dailyWestSync(p1, p2, d);
-      ok(r.score >= 0 && r.score <= 100 && r.grade && r.moon);
+    const r = dailyWestSync(p1, p2, d);
+    ok(r.score >= 0 && r.score <= 100 && r.grade && r.moon);
+    ok(r.moon.el && ["불", "흙", "바람", "물"].includes(r.moon.el)); // 달 별자리 원소 — 심리운세 표기용
       if (r.syncList.length) wSync++;
       const mv = r.aspects.filter(x => x.who === 2 && ["Moon", "Venus"].includes(x.t.key));
       eq(r.herStrong, mv.some(x => x.a.s > 0) && !mv.some(x => x.a.s < 0), "서양합궁" + r.date);

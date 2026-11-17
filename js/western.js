@@ -22,7 +22,8 @@ function westPositions(p) {
     let elon;
     if (x.key === "Moon") elon = A.EclipticGeoMoon(d).lon;
     else elon = A.Ecliptic(A.GeoVector(A.Body[x.key], d, true)).elon;
-    return { ...x, elon, sign: ZODIAC[Math.floor(((elon % 360) + 360) % 360 / 30)].name };
+    const z = ZODIAC[Math.floor(((elon % 360) + 360) % 360 / 30)];
+    return { ...x, elon, sign: z.name, el: z.el }; // el = 별자리 원소(불·흙·바람·물)
   });
 }
 
@@ -94,7 +95,8 @@ function transitsOf(date) { // 그날의 행성 위치 (날짜당 1회 계산 �
       let elon;
       if (x.key === "Moon") elon = A.EclipticGeoMoon(d).lon;
       else elon = A.Ecliptic(A.GeoVector(A.Body[x.key], d, true)).elon;
-      return { ...x, elon, sign: ZODIAC[Math.floor(((elon % 360) + 360) % 360 / 30)].name };
+      const z = ZODIAC[Math.floor(((elon % 360) + 360) % 360 / 30)];
+      return { ...x, elon, sign: z.name, el: z.el }; // el = 별자리 원소 — 심리운세 등에서 사용
     }));
   }
   return TRANSIT_CACHE.get(k);
