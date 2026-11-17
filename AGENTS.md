@@ -12,7 +12,7 @@
 |---|---|---|
 | `js/vendor/lunar.js` | lunar-javascript 1.7.7(6tail, MIT) — 사주·만세력·대운 계산 라이브러리 | 예 |
 | `js/vendor/astronomy.js` | astronomy-engine(MIT) — 서양 점성술 행성 위치 | 예 |
-| `js/engine.js` | 사주 계산·십신·지지 관계·12운성·신살·궁합 스코어·합궁 엔진 (UI 없음) | |
+| `js/engine.js` | 사주 계산·십신·지지 관계·12운성·신살·궁합 스코어·합궁 엔진 + 개인 일운(`personDay`)·세운(`getYearGZ`)·공용 유틸(`josa`·`randN`) (UI 없음) | |
 | `js/app.js` | 입력 폼·탭·localStorage·공유 링크 | |
 | `js/chart.js` | 명반 탭 렌더링 (사주 8자·오행·십신·대운) | |
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
@@ -22,6 +22,7 @@
 | `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
 | `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
 | `js/shinjeom.js` | 신점 탭 (오방기 뽑기 — 전체운 2깃발 + 월별 12깃발, 월운에 따라 가중) | |
+| `js/consult.js` | 운세 상담 탭 (사람 선택 칩 → 종합·심리·애정·연애·타로·재물·건강·직업·주간·년간 10메뉴 아코디언 — engine.js `personDay` 등으로 계산) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 
 ## 규칙

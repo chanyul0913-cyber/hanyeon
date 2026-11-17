@@ -162,3 +162,13 @@ main { max-width: 1060px; margin: 0 auto; padding: 18px 16px 8px; }
 .mini-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .mini-tbl td { border: 1px solid var(--line2); padding: 6px 8px; }
 .mini-tbl td:first-child { color: var(--sub); width: 38%; background: rgba(0,0,0,.2); }
+
+/* ---------- 운세 상담 메뉴 ---------- */
+.menu-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line2); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: border-color .1s; }
+.menu-row:hover { border-color: var(--line); }
+.menu-row.on { border-color: var(--gold); background: rgba(212,175,55,.07); }
+.menu-row .mi { width: 40px; height: 40px; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 11px; background: rgba(212,175,55,.13); font-size: 20px; }
+.menu-row .mt { flex: 1; min-width: 0; }
+.menu-row .mt b { font-size: 14.5px; }
+.menu-row .mt small { display: block; color: var(--sub); font-size: 12px; }
+.menu-row .chev { color: var(--sub); font-size: 12px; }

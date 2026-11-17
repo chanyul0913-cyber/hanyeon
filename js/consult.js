@@ -1,0 +1,210 @@
+"use strict";
+// 합연 — 운세 상담 탭: 원하는 사람(남자·여자)을 고르고 오늘의 운세 메뉴를 펼쳐 보는 상담 형식.
+// 모든 계산은 engine.js(personDay·monthlyLuck·tojeong·wealthRaw)와 western.js(트랜짓)를 사용한다.
+// 심리·건강·직업 등은 십신·12운성·신살·오행·트랜짓을 근거로 이 사이트가 만든 자체 해석(재미·소통용).
+
+const CONSULT_MENU = [
+  ["all", "🌟", "종합", "오늘 하루의 전반적인 운세에 대해 알려드립니다"],
+  ["mind", "🧠", "심리운세", "내 마음과 감정의 흐름을 알려드립니다"],
+  ["love", "💗", "애정운세", "나의 사랑과 이성운을 알려드립니다"],
+  ["romance", "💞", "연애운세", "우리 사랑의 오늘 상태를 알려드립니다"],
+  ["tarot", "🃏", "타로운세", "타로 카드를 이용한 나의 오늘 운세"],
+  ["wealth", "💰", "재물운세", "금전적 재물운에 대해 알려드립니다"],
+  ["health", "🌿", "건강운세", "나의 몸과 마음 건강에 대해 알려드립니다"],
+  ["job", "💼", "직업운세", "직업과 관련된 운세를 알려드립니다"],
+  ["week", "📅", "週 운세", "일주일간의 운세 흐름을 알려드립니다"],
+  ["year", "🗓️", "년 운세", "올해 일년간의 큰 흐름을 알려드립니다"]
+];
+// 십신 → 오늘의 기조(한 단어)·기조 문장·세부 해석
+const SS_DAY = {
+  정인: ["채움", "받아들이고 배우는 하루", "새로운 말·정보·가르침이 마음에 잘 들어온다. 공부·문서·상담에 유리하고 마음이 차분한 편이다."],
+  편인: ["생각", "생각이 깊어지는 하루", "머릿속이 복잡해지고 직감이 예민해진다. 결정은 미루고 아이디어는 기록해 두면 이롭다."],
+  식신: ["표현", "표현하고 즐기는 하루", "말과 표현이 부드럽고 먹고 즐기는 복이 따른다. 발표·요리·만남 같은 생산적인 즐거움에 좋다."],
+  상관: ["말", "말이 앞서기 쉬운 하루", "재주와 유머가 넘치지만 말이 날카로워진다. 구설은 조심하고 아이디어는 펼쳐도 된다."],
+  정재: ["현실", "현실을 꾸려가는 하루", "성실함과 계획성이 살아난다. 정산·정리·약속 확정처럼 착실한 일에 잘 맞는다."],
+  편재: ["기회", "기회와 활동성이 오는 하루", "재물·사람·기회가 움직인다. 큰 거래나 새로운 만남은 이날 노려 볼 만하다."],
+  정관: ["책임", "규칙과 책임이 잡히는 하루", "평가와 인정이 따르기 쉬운 날. 윗사람·공문·계약처럼 격식을 갖춘 일에 유리하다."],
+  편관: ["압박", "압박과 긴장이 생기는 하루", "부담과 경쟁이 커진다. 무리한 확장보다 기존 일을 단단히 지키는 쪽이 낫다."],
+  비견: ["자기", "내 페이스대로 가는 하루", "주체성이 강해지는 날. 친구·동료와 어울리기 좋지만 고집은 한 발 물러서는 게 부드럽다."],
+  겁재: ["경쟁", "경쟁과 지출이 느는 하루", "쓸 돈과 나설 일이 많아진다. 보증·도박성 지출은 피하고 실력은 아껴 쓴다."]
+};
+const REL_DAY = { 육합: "그날의 땅이 내 일지와 육합 — 몸과 마음이 편안해진다.", 삼합: "그날의 땅이 내 일지와 삼합 — 주변과 힘이 합쳐진다.", 충: "그날의 땅이 내 일지와 충 — 이동·변동이 생기고 마음이 흔들리기 쉽다.", 형: "그날의 땅이 내 일지와 형 — 예민해지니 말을 아낄 것.", 원진: "그날의 땅이 내 일지와 원진 — 사소한 말에 서운해질 수 있다.", 파: "그날의 땅이 내 일지와 파 — 약속이 어긋나기 쉽다.", 해: "그날의 땅이 내 일지와 해 — 방해 요소가 끼어들 수 있다." };
+const WS_DAY = { 장생: "활력이 살아나는 날", 목욕: "감정이 예민해지기 쉬운 날", 관대: "격식과 품위가 돋보이는 날", 건록: "실력이 안정적으로 발휘되는 날", 제왕: "기세가 가장 강한 날 — 과욕만 조심", 쇠: "기운이 잦아드는 날 — 페이스 조절", 병: "몸이 유난히 피곤한 날 — 휴식 우선", 사: "정리하고 놓아주는 게 좋은 날", 묘: "결과가 정리되어 만족스러운 날", 절: "템포가 끊기기 쉬운 날 — 무리 금지", 태: "새 일을 준비하기 좋은 날", 양: "성장과 확장이 이어지는 날" };
+const OH_TIP = { 목: "바깥 산책·스트레칭으로 기운을 펴면 회복이 빠릅니다.", 화: "일찍 자고 심박을 안정시키는 것이 최고의 보약입니다.", 토: "규칙적인 식사와 따뜻한 음식이 몸을 채워 줍니다.", 금: "심호흡·정리정돈으로 마음의 숨통을 트세요.", 수: "수분 섭취와 충분한 수면이 기운을 돌려줍니다." };
+const MOON_TONE = { 불: "감정의 온도가 뜨거워집니다 — 열정과 성급함이 함께 옵니다.", 흙: "감정이 느리고 안정적입니다 — 천천히 굳게 움직입니다.", 바람: "생각과 대화가 많아집니다 — 머리로 먼저 움직이는 감정입니다.", 물: "감정이 깊어집니다 — 공감과 그리움이 커집니다." };
+const toneWord = sg => SS_DAY[sg][0];
+const seedHash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.codePointAt(0), 16777619); return h >>> 0; };
+
+function renderConsult() {
+  ST.consult = ST.consult || { who: "m", open: null, tarotRnd: 0 };
+  const who = ST.consult.who, p = who === "m" ? ST.p1 : ST.p2, isMale = who === "m";
+  const now = new Date(), t = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+  const pd = personDay(p, t);
+  const chip = (k, label) => `<button onclick="setConsultWho('${k}')" style="${who === k ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}">${label}</button>`;
+  const head = `<div class="card gold"><div class="sec-t">운세 상담 <small>${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")} (${dowK[t.getDay()]})</small><span style="flex:1"></span><button onclick="closeConsult()" style="font-size:12px;padding:4px 10px">상담 종료</button></div>
+    <div class="reason" style="border-left-color:var(--gold)"><b>${esc(josa(p.name, "과", "와"))}</b> 운세 상담이 시작되었어요 — 아래 메뉴를 눌러 보세요. <div class="rx">모든 운세는 ${esc(p.name)}의 사주(일주 ${p.dmHanja})와 오늘의 간지·트랜짓으로 계산합니다.</div></div>
+    <div class="chips" style="margin-top:10px"><span style="color:var(--sub);font-size:12.5px;align-self:center">누구의 운세?</span> ${chip("m", `남자 · ${esc(ST.p1.name)}`)} ${chip("f", `여자 · ${esc(ST.p2.name)}`)}</div></div>`;
+
+  const menu = CONSULT_MENU.map(([k, ic, ti, de]) => `<div class="menu-row ${ST.consult.open === k ? "on" : ""}" onclick="openConsult('${k}')">
+      <span class="mi">${ic}</span><span class="mt"><b>${ti}</b><small>${de}</small></span><span class="chev">${ST.consult.open === k ? "▲" : "▼"}</span></div>`).join("");
+
+  const body = ST.consult.open ? buildConsult(ST.consult.open, p, isMale, t, pd) : `<div class="card" style="text-align:center;color:var(--sub);font-size:13px">메뉴를 누르면 ${esc(p.name)}의 운세가 펼쳐집니다.</div>`;
+  $("consultBody").innerHTML = head + `<div>${menu}</div>` + body;
+}
+
+function setConsultWho(k) { ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; renderConsult(); }
+function openConsult(k) { ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; renderConsult(); }
+function closeConsult() { ST.consult.open = null; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+function redrawConsultTarot() { ST.consult.tarotRnd = Date.now() >>> 0; renderConsult(); }
+
+function buildConsult(key, p, isMale, t, pd) {
+  const w = westOf(t), whoIdx = p === ST.p1 ? 1 : 2, Y = t.getFullYear(), m = t.getMonth() + 1;
+  const advice = { peak: "기운이 가장 잘 열린 날입니다. 하고 싶었던 만남·말·시작을 이날 하세요.", good: "부드럽게 흐르는 날. 평소 하던 일을 조금 더 밀어붙여도 좋습니다.", normal: "무난한 날입니다. 특별한 기대 없이 리듬을 지키면 충분합니다.", care: "조금 조심스러운 날. 중요한 결정과 예민한 대화는 하루 미루는 것이 유리합니다.", bad: "긴장이 쉽게 생기는 날입니다. 쉬어가고 말을 아끼면 부딪힘을 피합니다." }[pd.grade.k];
+  let title = "", rows = [];
+
+  if (key === "all") {
+    title = "종합 — 오늘 하루의 전반적인 운세";
+    rows.push({ t: `${pd.dayGZ.hanja}일 · 내 일간에 ${pd.sg} / 지지에 ${pd.bg}`, s: SS_TONE[pd.sg] + Math.round(SS_TONE[pd.bg] / 2), x: SS_DAY[pd.sg][1] });
+    if (REL_DAY[pd.rel]) rows.push({ t: "일지 관계", s: pd.rel === "육합" || pd.rel === "삼합" ? 5 : -4, x: REL_DAY[pd.rel] });
+    rows.push({ t: `12운성 — ${pd.ws}`, s: 0, x: WS_DAY[pd.ws] });
+    if (pd.inflow === 1) rows.push({ t: "기운 유입(인성)", s: 4, x: `그날의 ${pd.dayGZ.oh} 기운이 내 일간을 生 — 채워지고 보호받는 날` });
+    if (pd.inflow === -1) rows.push({ t: "긴장 유입(관살)", s: -4, x: `그날의 ${pd.dayGZ.oh} 기운이 내 일간을 극 — 부담을 느끼기 쉬운 날` });
+    pd.ss.forEach(x => rows.push({ t: x.name, s: x.name === "도화살" ? 4 : 3, x: x.desc }));
+    if (pd.dayGZ.oh === p.yongsin) rows.push({ t: "용신일", s: 6, x: `가장 부족한 ${p.yongsin} 오행이 들어오는 날 — 균형이 맞아간다` });
+    rows.push(...gradeRow(pd));
+    return wrap(title, pd, rows, advice);
+  }
+
+  if (key === "mind") {
+    title = "심리운세 — 마음과 감정의 흐름";
+    rows.push({ t: `내면의 기조: ${pd.sg}`, s: SS_TONE[pd.sg], x: SS_DAY[pd.sg][2] });
+    rows.push({ t: `겉으로 드러나는 태도: ${pd.bg}`, s: SS_TONE[pd.bg], x: `지지 본기까지 더하면 오늘의 나는 '${toneWord(pd.sg)}'와 '${toneWord(pd.bg)}'가 섞인 상태` });
+    if (w && w.moon) rows.push({ t: `달 ☾ ${w.moon.sign}`, s: 0, x: MOON_TONE[w.moon.el] });
+    if (pd.inflow === 1) rows.push({ t: "받는 기운", s: 4, x: "바깥에서 나를 生해주는 날 — 사람·상황이 나를 도와주는 쪽" });
+    else if (pd.inflow === 2) rows.push({ t: "주는 기운", s: 0, x: "내 기운을 밖으로 생해주는 날 — 표현·소모가 먼저 오는 하루" });
+    else if (pd.inflow === -1) rows.push({ t: "눌리는 기운", s: -4, x: "바깥이 나를 극 — 압박감을 느끼기 쉬우니 방어적으로 대응" });
+    return wrap(title, pd, rows, "마음은 말보다 먼저 흔들립니다. 오늘의 기조('" + toneWord(pd.sg) + "')를 알고 있으면 감정에 쓸리지 않고 선택할 수 있습니다.");
+  }
+
+  if (key === "love") {
+    title = "애정운세 — 나의 사랑과 이성운";
+    const loveOh = isMale ? p.jaeOh : p.gwanOh, hit = pd.dayGZ.oh === loveOh;
+    if (hit) rows.push({ t: isMale ? "애정운(재성일)" : "애정운(관성일)", s: 8, x: `그날의 기운이 ${p.name}의 ${isMale ? "사랑(재성)" : "이끌림(관성)"} 오행(${loveOh})과 같음 — 표현하고 끌리는 힘이 살아나는 날` });
+    else rows.push({ t: "애정 기운", s: 0, x: `내 애정 오행은 ${loveOh}인데 오늘은 ${pd.dayGZ.oh} — 애정보다 다른 일이 먼저 오는 날` });
+    pd.ss.filter(x => x.name === "도화살").forEach(x => rows.push({ t: "도화살(✦)", s: 4, x: x.desc }));
+    if (w) {
+      const mv = w.aspects.filter(x => x.who === whoIdx && ["Venus", "Moon"].includes(x.t.key));
+      mv.filter(x => x.a.s > 0).forEach(x => rows.push({ t: `금성·달 조화 (${x.t.ko} ✕ 내 ${x.n.ko})`, s: 3, x: "오늘의 행성이 내 애정·감정 행성과 조화 — 부드러운 끌림이 살아나는 날" }));
+      mv.filter(x => x.a.s < 0).forEach(x => rows.push({ t: `금성·달 긴장 (${x.t.ko} ✕ 내 ${x.n.ko})`, s: -3, x: "애정 행성에 긴장각 — 서운함을 크게 느끼기 쉬우니 표현을 곱게" }));
+    }
+    const mL = monthlyLuck(p, isMale, Y, m);
+    rows.push({ t: `이번 달(${m}월) 애정운`, s: 0, x: `★${mL.love} — ${mL.lTags.length ? mL.lTags.map(x => ({ "재성(이성)월": "이성 인연의 기운", "관성(이성)월": "이성 인연의 기운", "도화월": "매력이 살아나는 달", "천간합": "마음이 잘 맞는 달", "일지 육합": "가까운 사람과 잘 맞는 달", "일지 삼합": "힘이 합쳐지는 달", "일지 충": "감정 소모 조심 달" })[x] || x).join(" · ") : "특별한 애정 기운 없는 평범한 달"}` });
+    return wrap(title, pd, rows, hit || pd.ss.some(x => x.name === "도화살") ? "오늘은 마음을 표현해도 잘 통하는 날입니다. 먼저 다가가 보세요." : "오늘은 애정보다 내 일에 집중하고, 감정 확인은 기운이 맞는 날에 하는 게 서로 편합니다.");
+  }
+
+  if (key === "romance") {
+    title = "연애운세 — 우리 사랑의 오늘 상태";
+    const cr = dailySync(ST.p1, ST.p2, t);
+    rows.push({ t: `두 사람 속궁합 점수 ${cr.score}`, s: cr.score - 50, x: cr.grade.label + (cr.flags.danger ? " · ⚡ 최고 위험(일지 충+일간 극) 겹침" : cr.flags.herStrong ? " · ✿ 합궁(여자가 채워지는 날)" : "") });
+    cr.reasons.slice(0, 4).forEach(x => rows.push({ t: x.t, s: x.s, x: x.x }));
+    const wHap = !!(w && w.herStrong);
+    if (wHap) rows.push({ t: "✿ 서양합궁", s: 5, x: "오늘의 달·금성이 여자 출생 차트를 조화각으로만 비춤 — 여자가 편안해지는 날" });
+    return wrap(title, cr, rows, cr.flags.danger ? "오늘은 예민한 이야기를 미루는 게 사랑을 지키는 길입니다. 말투를 세 배로 부드럽게." : cr.flags.herStrong || wHap ? "여자가 편안해지는 날 — 오늘 만나면 관계가 한 단계 부드러워집니다." : cr.grade.k === "peak" || cr.grade.k === "good" ? "두 사람 모두 기운이 열려 있습니다. 하고 싶었던 말을 오늘 꺼내세요." : "평소처럼 존중하는 것만으로 충분한 날입니다.");
+  }
+
+  if (key === "tarot") {
+    title = "타로운세 — 오늘의 카드 3장";
+    if (typeof TAROT === "undefined") return `<div class="card"><div class="sec-t">${title}</div><div class="reason">타로 데이터(tarot.js)를 불러오지 못했습니다.</div></div>`;
+    const seed = (seedHash(`${pd.date}-${p.name}`) ^ (ST.consult.tarotRnd || 0)) >>> 0;
+    let x = seed; const pool = TAROT.map((_, i) => i), pick = [];
+    for (let k = 0; k < 3; k++) { x = Math.imul(x ^ x >>> 15, 2246822519) >>> 0; pick.push({ i: pool.splice(x % pool.length, 1)[0], rev: (x >>> 8) % 2 === 1 }); }
+    const cards = pick.map(c => { const t2 = TAROT[c.i]; return { t: t2, rev: c.rev, tone: c.rev ? t2[7] : t2[6], text: c.rev ? t2[5] : t2[4] }; });
+    const POS = ["과거 — 그동안의 흐름", "현재 — 지금의 상태", "미래 — 앞으로의 방향"];
+    const sum = cards.reduce((s, c) => s + c.tone, 0) + cards[1].tone;
+    const verdict = sum >= 3 ? "흐름이 분명히 좋습니다. 원하는 방향으로 과감히 가도 됩니다."
+      : sum >= 1 ? "호조건이지만 한 군데 조심스러운 부분이 있습니다. 서두르지 마세요."
+      : sum >= -1 ? "복잡하게 얽힌 하루입니다. 한 걸음 물러나 확인하고 움직이세요."
+      : "지치기 쉬운 하루입니다. 결정과 다툼은 피하고 쉬어 가세요.";
+    const cardHtml = cards.map((c, k) => `<div class="part"><div class="pt"><span>${POS[k]} <span class="pv">${c.t[0]}. ${c.t[1]} · ${c.rev ? "역방향" : "정방향"}</span></span><span class="ps" style="color:${c.tone > 0 ? "var(--good)" : c.tone < 0 ? "var(--bad)" : "var(--sub)"}">${c.tone > 0 ? "긍정" : c.tone < 0 ? "주의" : "복합"}</span></div><div class="px" style="font-size:22px;text-align:center;margin:6px 0;${c.rev ? "transform:rotate(180deg)" : ""}">${c.t[3]}</div><div class="px">${esc(c.text)}</div></div>`).join("");
+    return `<div class="card gold"><div class="sec-t">${title} <small>${esc(p.name)} · ${String(pd.date).slice(4, 6)}/${String(pd.date).slice(6)} · 결과는 하루 동안 같게 유지</small></div>${cardHtml}
+      <div class="reason"><b>종합</b> — ${esc(verdict)}</div>
+      <div style="margin-top:10px;text-align:center"><button onclick="redrawConsultTarot()">🔄 다시 뽑기</button></div>
+      <div style="font-size:12px;color:var(--sub);margin-top:8px">재미용 점입니다. 같은 날 같은 사람은 같은 카드가 나오고, 다시 뽑기로 새로 섞을 수 있습니다.</div></div>`;
+  }
+
+  if (key === "wealth") {
+    title = "재물운세 — 돈의 흐름";
+    const L = lottoOf(p, whoIdx, t, w);
+    rows.push({ t: `오늘 재물 원점수 ${pd.wealth.raw}점`, s: pd.wealth.raw, x: pd.wealth.tags.length ? "근거: " + pd.wealth.tags.join(" · ") : "재성·식신·용신 기운 없는 평범한 하루" });
+    if (w) { const wm = westMoney(w, whoIdx); if (wm) rows.push({ t: "서양 재물 기운", s: Math.round(wm), x: `금성(돈·즐거움)·태양·달이 내 출생 차트에 만드는 각의 합 (${wm > 0 ? "조화가 우세" : "긴장이 우세"})` }); }
+    const mL = monthlyLuck(p, isMale, Y, m);
+    rows.push({ t: `이번 달(${m}월) 재물운 ★${mL.wealth}`, s: 0, x: mL.wTags.length ? mL.wTags.map(x2 => ({ "재성월": "재물 기운이 들어옴", "식신생재": "일한 만큼 돈이 따라옴", "겁재(지출)": "지출·경쟁이 늘어남", "용신월": "부족한 기운이 채워짐", "일지 충": "변동이 생기기 쉬움", "일지 육합": "주변의 도움", "일지 삼합": "힘을 합침" })[x2] || x2).join(" · ") : "평범한 재물의 달" });
+    rows.push({ t: "🍀 로또 판정", s: 0, x: `합산 ${L.score}점 — ${L.ok ? "로또 사기 좋은 날(사주 재물≥2 · 서양 재물>0 · 합산≥20)" : "오늘은 아님"} (재미용 — 추첨은 무작위)` });
+    return wrap(title, pd, rows, pd.wealth.raw >= 2 ? "돈의 흐름이 열려 있는 날. 계약·구매·정산처럼 '돈이 오가는 일'에 유리합니다." : pd.wealth.raw < 0 ? "지출이 늘기 쉬운 날. 큰 결제와 투자는 하루 미루세요." : "평범한 재물의 날. 무리한 베팅보다 착실한 소비 관리가 이득입니다.");
+  }
+
+  if (key === "health") {
+    title = "건강운세 — 몸과 마음";
+    let s = 0;
+    if (pd.inflow === -1) { s -= 3; rows.push({ t: "스트레스 유입(관살)", s: -3, x: `그날의 ${pd.dayGZ.oh} 기운이 내 일간을 극 — 긴장이 몸에 먼저 쌓이는 날` }); }
+    if (["충", "형"].includes(pd.rel)) { s -= 3; rows.push({ t: `일지 ${pd.rel}`, s: -3, x: "몸의 땅(일지)이 흔들리는 날 — 무리한 일정·과격한 활동 조심" }); }
+    if (["절", "사", "병"].includes(pd.ws)) { s -= 2; rows.push({ t: `12운성 ${pd.ws}`, s: -2, x: "기운이 쉬어야 하는 국면 — 오늘은 회복의 날로 쓰는 게 이롭다" }); }
+    if (["장생", "제왕"].includes(pd.ws)) { s += 2; rows.push({ t: `12운성 ${pd.ws}`, s: 2, x: "활력이 넘치는 날 — 다만 과확장·과운동은 오히려 피로" }); }
+    if (pd.dayGZ.oh === p.yongsin) { s += 3; rows.push({ t: "용신일", s: 3, x: `부족한 ${p.yongsin} 오행이 채워져 컨디션이 돌아오는 날` }); }
+    if (w) { const mh = w.aspects.filter(x => x.who === whoIdx && x.t.key === "Mars" && x.a.s < 0); if (mh.length) { s -= 2; rows.push({ t: "화성 긴장각", s: -2, x: "행동·에너지 행성에 긴장 — 사고·과열 조심, 운동 강도는 낮추기" }); } }
+    rows.push({ t: "오행 보충 팁", s: 0, x: OH_TIP[p.yongsin] });
+    return wrap(title, pd, rows, s < 0 ? "오늘은 몸이 먼저 말을 걸어 오는 날입니다. 일정을 하나 덜어내고 일찍 쉬세요." : s > 0 ? "컨디션이 좋은 날입니다. 밀린 운동과 일을 처리하기 좋습니다." : "평범한 컨디션입니다. 평소 루틴을 지키는 것만으로 충분합니다.");
+  }
+
+  if (key === "job") {
+    title = "직업운세 — 일과 평가의 기운";
+    if (["정관", "편관"].includes(pd.sg)) rows.push({ t: `평가의 날(${pd.sg})`, s: pd.sg === "정관" ? 3 : -2, x: pd.sg === "정관" ? "인정·평가가 따르는 날 — 보고·면담·지원에 유리" : "압박과 책임이 큰 날 — 중요한 결정은 서류로 남기고 서두르지 않기" });
+    if (["정인", "편인"].includes(pd.sg)) rows.push({ t: `문서·학습의 날(${pd.sg})`, s: 2, x: "정보·문서·계획이 잘 들어오는 날 — 공부·검토·글쓰기에 유리" });
+    if (["정재", "편재"].includes(pd.sg)) rows.push({ t: `실적의 날(${pd.sg})`, s: 2, x: "협상·거래·영업처럼 결과가 숫자로 남는 일에 좋은 날" });
+    if (["식신", "상관"].includes(pd.sg)) rows.push({ t: `표현·생산의 날(${pd.sg})`, s: pd.sg === "식신" ? 2 : 0, x: "발표·제작·아이디어가 잘 나오는 날. 상관일은 말을 매끈하게 다듬기" });
+    pd.ss.filter(x => x.name === "역마살").forEach(x => rows.push({ t: "역마살", s: 2, x: "이동·출장·외근에 좋은 날 — 움직이며 일이 풀린다" }));
+    pd.ss.filter(x => x.name === "천을귀인").forEach(x => rows.push({ t: "천을귀인", s: 3, x: "윗사람·귀인의 도움이 따르는 날 — 부탁·협조를 청해도 잘 들어진다" }));
+    if (pd.rel === "충") rows.push({ t: "일지 충", s: -3, x: "현장·자리가 흔들리는 날 — 이동·변경은 두 번 확인" });
+    if (w) { const js = w.aspects.filter(x => x.who === whoIdx && x.t.key === "Sun"); js.filter(x => x.a.s > 0).forEach(x => rows.push({ t: "태양 조화", s: 2, x: "오늘의 태양이 내 차트와 조화 — 인정·활력이 따르는 날" })); }
+    return wrap(title, pd, rows, rows.some(x => x.s >= 2) ? "일의 기운이 살아 있는 날입니다. 밀린 중요 일을 오늘 배치하세요." : "특별한 직업 기운 없는 날입니다. 루틴을 지키며 준비하는 게 이득입니다.");
+  }
+
+  if (key === "week") {
+    title = "週 운세 — 오늘부터 7일";
+    const rows7 = [];
+    let best = null;
+    for (let i = 0; i < 7; i++) {
+      const dt = addDays(t, i), x = personDay(p, dt);
+      if (!best || x.score > best.score) best = x;
+      rows7.push({ x });
+    }
+    const list = rows7.map(({ x }, i) => `<div class="rank-row" style="${x.date === best.date ? "background:rgba(240,217,140,.06)" : ""}"><span class="rk">${i === 0 ? "오늘" : i + 1}</span><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">${x.dayGZ.hanja} · ${x.sg}(${toneWord(x.sg)})${x.rel ? " · " + x.rel : ""}</span><span style="flex:1"></span><b style="font-family:var(--serif);font-size:15px;color:${x.score >= 68 ? "var(--good)" : x.score >= 38 ? "var(--ink)" : "var(--bad)"}">${x.score}</b></div>`).join("");
+    return `<div class="card"><div class="sec-t">${title} <small>${esc(p.name)}</small></div>${list}
+      <div class="reason" style="margin-top:10px"><b>가장 좋은 날</b> — ${fmtYMD(best.date)} (${best.dayGZ.hanja}일, ${best.score}점 · ${best.grade.label}) <div class="rx">중요한 만남·결정·시작은 이 날에 배치하는 게 유리합니다.</div></div>
+      <div style="font-size:12px;color:var(--sub);margin-top:6px">점수는 그날 간지가 ${esc(p.name)}의 사주와 맺는 십신·지지 관계·용신·신살의 합산입니다.</div></div>`;
+  }
+
+  if (key === "year") {
+    title = `년 운세 — ${Y}년의 큰 흐름`;
+    const yg = getYearGZ(Y), ySs = shiShen(p.dmGan, yg.gan), yRel = zaRel(JI_K[p.dmJi], JI_K[yg.ji]);
+    rows.push({ t: `세운 ${yg.hanja}년 — 일간에 ${ySs}`, s: SS_TONE[ySs], x: SS_DAY[ySs][2] });
+    if (yRel) rows.push({ t: `년지와 내 일지 ${yRel}`, s: yRel === "육합" || yRel === "삼합" ? 6 : yRel === "충" ? -6 : -3, x: REL_DAY[yRel] || "" });
+    try { const tj = tojeong(p, Y); if (typeof TJ === "object" && TJ[tj.gwae]) rows.push({ t: `토정비결 ${tj.gwae}괘 (${TJ[tj.gwae].g})`, s: TJ[tj.gwae].g === "길" ? 4 : TJ[tj.gwae].g === "흉" ? -4 : 0, x: `${TJ[tj.gwae].h} — ${TJ[tj.gwae].x}` }); } catch {}
+    const months = []; for (let mm = 1; mm <= 12; mm++) months.push(monthlyLuck(p, isMale, Y, mm));
+    const bestW = Math.max(...months.map(x2 => x2.wealth)), bestL = Math.max(...months.map(x2 => x2.love));
+    rows.push({ t: "재물운 좋은 달", s: 0, x: `${months.filter(x2 => x2.wealth === bestW).map(x2 => x2.m + "월").join("·")} (★${bestW})` });
+    rows.push({ t: "애정운 좋은 달", s: 0, x: `${months.filter(x2 => x2.love === bestL).map(x2 => x2.m + "월").join("·")} (★${bestL})` });
+    return wrap(title, pd, rows, `올해는 '${toneWord(ySs)}'의 기운이 큰 물결입니다. 좋은 달에 중요한 일을 배치하고, ${yRel === "충" ? "년지 충의 해라 변동을 계획적으로 받아들이세요." : "흐름이 꺾이는 달(일지 충월)만 피하면 무난합니다."}`);
+  }
+  return "";
+}
+
+function gradeRow(pd) {
+  return [{ t: `종합 ${pd.score}점 — ${pd.grade.label}`, s: pd.score - 50, x: "십신 톤 + 지지 합충 + 용신·신살 + 오행 유입의 합산(0~100)" }];
+}
+function wrap(title, r, rows, advice) {
+  return `<div class="card gold"><div class="sec-t">${title} <small>${r.grade ? `${r.score}점 · ${r.grade.label}` : ""}</small></div>
+    ${rows.map(x => scoreRow(x)).join("")}
+    ${advice ? `<div class="sec-t">조언</div><div class="reason">${esc(advice)}</div>` : ""}</div>`;
+}
+function scoreRow(r) { return `<div class="reason"><span class="rt">${esc(r.t)}</span><span class="rs" style="color:${r.s >= 0 ? "var(--good)" : "var(--bad)"}">${r.s > 0 ? "+" : ""}${r.s}</span><div class="rx">${esc(r.x)}</div></div>`; }

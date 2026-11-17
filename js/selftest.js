@@ -107,6 +107,13 @@ async function selfTest() {
   eq(zodiacSign(2000, 3, 22).name, "양자리", "별자리양");
   eq(zodiacSign(2000, 12, 21).name, "사수자리", "별자리사수");
 
+  // 11-1) 개인 하루 운(운세 상담) — 범위·형식·세운 년건
+  const pd = personDay(p1, new Date(2026, 10, 17, 12));
+  ok(pd.score >= 0 && pd.score <= 100 && pd.grade && pd.sg && pd.ws && typeof pd.wealth.raw === "number");
+  d = new Date(2026, 10, 17, 12);
+  for (let i = 0; i < 7; i++) { const x = personDay(p1, addDays(d, i)); ok(x.score >= 0 && x.score <= 100); }
+  eq(getYearGZ(2026).hanja, "丙午", "2026세운"); eq(getYearGZ(2025).hanja, "乙巳", "2025세운");
+
   // 12) 서양 일별 궁합(트랜짓) — 범위·형식, 1년 안에 조화일 존재 (astronomy.js 있을 때만)
   if (window.Astronomy && typeof dailyWestSync === "function") {
     let wSync = 0, wLotto = 0; d = new Date(2026, 10, 15, 12);

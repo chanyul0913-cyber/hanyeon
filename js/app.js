@@ -125,7 +125,7 @@ function renderAll(only) {
   const t = today();
   ST.calYear = ST.calYear || t.getFullYear(); ST.fYear = ST.fYear || t.getFullYear(); ST.calMonth = ST.calMonth || (t.getMonth() + 1);
   // 보이는 탭만 그린다 — 다른 탭은 switchTab에서 열 때 그린다(첫 화면·저장·필터 속도)
-  const R = { home: renderHome, myeongban: renderMyeongban, couple: renderCouple, daily: renderDaily, western: renderWestern, luck: renderLuck, tojeong: renderTojeong, tarot: renderTarot, shinjeom: renderShinjeom };
+  const R = { home: renderHome, consult: renderConsult, myeongban: renderMyeongban, couple: renderCouple, daily: renderDaily, western: renderWestern, luck: renderLuck, tojeong: renderTojeong, tarot: renderTarot, shinjeom: renderShinjeom };
   try { R[only || ST.tab](); } catch (e) { console.error(e); }
 }
 
@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try { ST.p1 = calcPerson(ST.profiles[0]); ST.p2 = calcPerson(ST.profiles[1]); }
     catch (e) { console.warn("저장된 프로필 계산 실패 — 다시 설정 필요", e); saveProfiles(null); ST.profiles = null; }
   }
-  const hashTab = location.hash.match(/^#(home|myeongban|couple|daily|western|luck|tojeong|tarot|shinjeom)$/);
+  const hashTab = location.hash.match(/^#(home|consult|myeongban|couple|daily|western|luck|tojeong|tarot|shinjeom)$/);
   if (hashTab) switchTab(hashTab[1]); else renderAll(); // 잠금 없이 바로 표시(프로필 없으면 설정 창이 열림)
   if (location.search.includes("selftest")) selfTest().catch(() => {}); // 자동 점검은 ?selftest 일 때만(평소엔 콘솔 await selfTest())
 });

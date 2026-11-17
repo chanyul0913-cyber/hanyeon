@@ -304,6 +304,38 @@ function monthlyLuck(p, isMale, y, m) {
   return { m, gz: g, sg, bg, wealth: luckStars(w), love: luckStars(l), wRaw: w, lRaw: l, wTags, lTags };
 }
 
+// ---------- 개인 하루 운 (운세 상담 탭용) ----------
+// 그날 간지가 한 사람의 사주와 맺는 관계를 십신·지지 관계·오행 유입·12운성·신살·재물로 요약한다.
+// 십신 톤 가중 + 지지 합충 + 용신 + 유입 + 신살 → 개인 하루 점수(0~100).
+const SS_TONE = { 정인: 2, 편인: 1, 식신: 2, 상관: 1, 정재: 2, 편재: 1, 정관: 2, 편관: -1, 비견: 0, 겁재: -1 };
+function personDay(p, date) {
+  const d = getDayGZ(date);
+  const sg = shiShen(p.dmGan, d.gan), bg = shiShen(p.dmGan, JI_MAIN[d.ji]); // 천간·지지 본기 십신
+  const rel = zaRel(JI_K[p.dmJi], JI_K[d.ji]);
+  const inflow = d.oh === p.dmOh ? 0 : OH_GEN[d.oh] === p.dmOh ? 1 : OH_KEUK[d.oh] === p.dmOh ? -1 : OH_GEN[p.dmOh] === d.oh ? 2 : 0;
+  const ws = woonseong(p.dmGan, d.ji);
+  const ss = shinsalOf(p.dmGan, p.dmJi, d.ji);
+  const wealth = wealthRaw(p, d.gan, d.ji, "일");
+  let score = 50 + SS_TONE[sg] + SS_TONE[bg] / 2
+    + (rel === "육합" ? 8 : rel === "삼합" ? 5 : rel === "충" || rel === "원진" ? -6 : rel === "형" ? -5 : rel === "파" || rel === "해" ? -3 : 0)
+    + (d.oh === p.yongsin ? 6 : 0) + (inflow === 1 ? 4 : inflow === -1 ? -4 : 0)
+    + (ss.some(x => x.name === "도화살") ? 4 : 0) + (ss.some(x => x.name === "천을귀인") ? 3 : 0);
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const grade = score >= 82 ? { k: "peak", label: "아주 좋음" }
+    : score >= 68 ? { k: "good", label: "좋음" }
+    : score >= 52 ? { k: "normal", label: "무난" }
+    : score >= 38 ? { k: "care", label: "조심" }
+    : { k: "bad", label: "긴장" };
+  return { date: ymdOf(date), dayGZ: d, sg, bg, rel, inflow, ws, ss, wealth, score, grade };
+}
+
+// 세운(년건) — 그 해의 년주 간지
+function getYearGZ(Y) {
+  const gz = Lunar.fromYmd(Y, 1, 1).getYearInGanZhi();
+  const gan = GAN.indexOf(gz[0]), ji = JI.indexOf(gz[1]);
+  return { gan, ji, hanja: gz, ilju: GAN_K[gan] + JI_K[ji] };
+}
+
 // ---------- 토정비결 괘 ----------
 // 간지수 = 천간 선천수(갑기9 을경8 병신7 정임6 무계5) + 지지수 — 태세수·월건수·일진수가 같은 표를 쓴다.
 // 지지수는 공개 조견표(갑자20·경자19 등 30개 값)에서 역산: 29/30 일치.
