@@ -182,7 +182,10 @@ function renderTojeong() {
   $("tjTitle").textContent = `${Y}년`;
   const now = new Date();
   const card = (p, label, isMale) => {
-    const t = tojeong(p, Y), d = TJ[t.gwae];
+    let t, d;
+    try { t = tojeong(p, Y); d = TJ[t.gwae]; } // 한 사람 계산 실패가 반대편 카드까지 죽이지 않게 격리
+    catch (e) { return `<div class="card"><div class="sec-t">${esc(p.name)} <small>(${label})</small></div><div class="reason">토정비결 계산 실패: ${esc(e && e.message || e)} — 생년월일 설정을 확인하세요.</div></div>`; }
+    if (!d) return `<div class="card"><div class="sec-t">${esc(p.name)} <small>(${label})</small></div><div class="reason">괘 데이터(${t.gwae}괘)를 찾을 수 없습니다.</div></div>`;
     const gc = g => g === "길" ? "var(--good)" : g === "흉" ? "var(--bad)" : "var(--sub)";
     const months = tjMonths(p, isMale, Y, d.g).map(x => `<div class="reason" style="${Y === now.getFullYear() && x.m === now.getMonth() + 1 ? "border-color:var(--gold)" : ""}"><span class="rt">${x.m}월 <small style="color:var(--sub)">${x.gz.hanja}</small></span><span class="rs" style="color:${gc(x.g)}">${x.g}</span><div class="rx">${esc(x.text)}</div></div>`).join("");
     const cls = d.g === "길" ? "b-charge" : d.g === "흉" ? "b-tension" : "b-neutral";

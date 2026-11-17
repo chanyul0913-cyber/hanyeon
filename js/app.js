@@ -126,7 +126,19 @@ function renderAll(only) {
   ST.calYear = ST.calYear || t.getFullYear(); ST.fYear = ST.fYear || t.getFullYear(); ST.calMonth = ST.calMonth || (t.getMonth() + 1);
   // 보이는 탭만 그린다 — 다른 탭은 switchTab에서 열 때 그린다(첫 화면·저장·필터 속도)
   const R = { home: renderHome, consult: renderConsult, myeongban: renderMyeongban, couple: renderCouple, daily: renderDaily, western: renderWestern, luck: renderLuck, tojeong: renderTojeong, tarot: renderTarot, shinjeom: renderShinjeom };
-  try { R[only || ST.tab](); } catch (e) { console.error(e); }
+  const sec = document.getElementById("tab-" + (only || ST.tab));
+  if (sec) sec.querySelectorAll(".render-err").forEach(x => x.remove()); // 성공 렌더마다 이전 오류 카드 정리
+  try { R[only || ST.tab](); }
+  catch (e) { // 화면이 통째로 비어 보이지 않게 눈에 보이는 오류 카드로 알림
+    console.error(e);
+    if (sec) {
+      const d = document.createElement("div");
+      d.className = "card render-err";
+      d.style.borderColor = "rgba(226,101,92,.55)";
+      d.innerHTML = `<b style="color:var(--bad)">⚠ 이 화면을 그리는 중 문제가 생겼습니다.</b><div class="rx" style="color:var(--sub);font-size:12.5px;margin-top:4px">${esc(e && e.message || e)} — 새로고침하거나 설정을 다시 저장해 보세요. 문제가 반복되면 알려주세요.</div>`;
+      sec.prepend(d);
+    }
+  }
 }
 
 function openSettings() { fillForms(); $("setMsg").textContent = ""; $("modalSettings").hidden = false; }
@@ -233,10 +245,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelectorAll(".modal").forEach(m => m.onclick = e => { if (e.target === m) m.hidden = true; });
   ["form1", "form2"].forEach(id => { const f = $(id); f.nohour.onchange = () => { f.h.disabled = f.mi.disabled = f.nohour.checked; if (f.nohour.checked) { f.h.value = ""; } }; });
   document.querySelectorAll(".tabbar button").forEach(b => b.onclick = () => switchTab(b.dataset.tab));
-  $("calPrev").onclick = () => { ST.calMonth--; if (ST.calMonth < 1) { ST.calMonth = 12; ST.calYear--; } renderAll("daily"); };
-  $("calNext").onclick = () => { ST.calMonth++; if (ST.calMonth > 12) { ST.calMonth = 1; ST.calYear++; } renderAll("daily"); };
-  $("luckPrev").onclick = $("tjPrev").onclick = $("sjPrev").onclick = () => { ST.fYear--; renderAll(); };
-  $("luckNext").onclick = $("tjNext").onclick = $("sjNext").onclick = () => { ST.fYear++; renderAll(); };
+  // 달·연도 이동은 lunar.js·조견표 안전 범위(1900~2100) 안에서만 — 밖으로 나가면 이동 자체를 막음
+  const moveMonth = dir => { let y = ST.calYear, m = ST.calMonth + dir; if (m > 12) { m = 1; y++; } if (m < 1) { m = 12; y--; } if (y < 1900 || y > 2100) return; ST.calYear = y; ST.calMonth = m; renderAll("daily"); };
+  const moveYear = dir => { const y = ST.fYear + dir; if (y < 1901 || y > 2099) return; ST.fYear = y; renderAll(); };
+  $("calPrev").onclick = () => moveMonth(-1);
+  $("calNext").onclick = () => moveMonth(1);
+  $("luckPrev").onclick = $("tjPrev").onclick = $("sjPrev").onclick = () => moveYear(-1);
+  $("luckNext").onclick = $("tjNext").onclick = $("sjNext").onclick = () => moveYear(1);
   ["fPeak", "fHerStrong", "fWestHap", "fDanger", "fLotto1", "fLotto2"].forEach(id => { $(id).onchange = () => renderAll("daily"); });
 
   // 공유 링크(hash) → 저장소 순으로 프로필 복원 후 사주 계산
