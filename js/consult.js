@@ -52,9 +52,10 @@ function renderConsult() {
   $("consultBody").innerHTML = head + `<div>${menu}</div>` + body;
 }
 
-function setConsultWho(k) { ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; renderConsult(); }
-function openConsult(k) { ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; renderConsult(); }
-function closeConsult() { ST.consult.open = null; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+function initConsult() { if (!ST.consult) ST.consult = { who: "m", open: null, tarotRnd: 0 }; }
+function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; renderConsult(); }
+function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; renderConsult(); }
+function closeConsult() { initConsult(); ST.consult.open = null; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
 function redrawConsultTarot() { ST.consult.tarotRnd = Date.now() >>> 0; renderConsult(); }
 
 function buildConsult(key, p, isMale, t, pd) {
