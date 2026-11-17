@@ -36,7 +36,7 @@ const toneWord = sg => SS_DAY[sg][0];
 const seedHash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.codePointAt(0), 16777619); return h >>> 0; };
 
 function renderConsult() {
-  ST.consult = ST.consult || { who: "m", open: null, tarotRnd: 0 };
+  initConsult();
   const who = ST.consult.who, p = who === "m" ? ST.p1 : ST.p2, isMale = who === "m";
   const now = new Date(), t = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
   const pd = personDay(p, t);
@@ -45,18 +45,27 @@ function renderConsult() {
     <div class="reason" style="border-left-color:var(--gold)"><b>${esc(josa(p.name, "과", "와"))}</b> 운세 상담이 시작되었어요 — 아래 메뉴를 눌러 보세요. <div class="rx">모든 운세는 ${esc(p.name)}의 사주(일주 ${p.dmHanja})와 오늘의 간지·트랜짓으로 계산합니다.</div></div>
     <div class="chips" style="margin-top:10px"><span style="color:var(--sub);font-size:12.5px;align-self:center">누구의 운세?</span> ${chip("m", `남자 · ${esc(ST.p1.name)}`)} ${chip("f", `여자 · ${esc(ST.p2.name)}`)}</div></div>`;
 
-  const menu = CONSULT_MENU.map(([k, ic, ti, de]) => `<div class="menu-row ${ST.consult.open === k ? "on" : ""}" onclick="openConsult('${k}')">
-      <span class="mi">${ic}</span><span class="mt"><b>${ti}</b><small>${de}</small></span><span class="chev">${ST.consult.open === k ? "▲" : "▼"}</span></div>`).join("");
+  // 아코디언 — 열린 메뉴의 결과 카드를 그 메뉴 줄 바로 아래에 끼워 넣는다(맨 밑까지 내려갈 필요 없음)
+  const menu = CONSULT_MENU.map(([k, ic, ti, de]) => {
+    const open = ST.consult.open === k;
+    const row = `<div class="menu-row ${open ? "on" : ""}" id="consultRow-${k}" onclick="openConsult('${k}')">
+      <span class="mi">${ic}</span><span class="mt"><b>${ti}</b><small>${de}</small></span><span class="chev">${open ? "▲" : "▼"}</span></div>`;
+    return row + (open ? `<div id="consultReading">${buildConsult(k, p, isMale, t, pd)}</div>` : "");
+  }).join("");
 
-  const body = ST.consult.open ? buildConsult(ST.consult.open, p, isMale, t, pd) : `<div class="card" style="text-align:center;color:var(--sub);font-size:13px">메뉴를 누르면 ${esc(p.name)}의 운세가 펼쳐집니다.</div>`;
-  $("consultBody").innerHTML = head + `<div>${menu}</div>` + body;
+  $("consultBody").innerHTML = head + `<div>${menu}</div>` + (ST.consult.open ? "" : `<div class="card" style="text-align:center;color:var(--sub);font-size:13px">메뉴를 누르면 ${esc(p.name)}의 운세가 바로 아래 펼쳐집니다.</div>`);
+  if (ST.consult.scrollAfter) { // 메뉴 클릭 직후 — 클릭한 줄이 화면 위에 오도록 부드럽게 스크롤(결과가 바로 밑에 보임)
+    ST.consult.scrollAfter = false;
+    const el = document.getElementById("consultRow-" + ST.consult.open);
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 30);
+  }
 }
 
 function initConsult() { if (!ST.consult) ST.consult = { who: "m", open: null, tarotRnd: 0 }; }
-function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; renderConsult(); }
-function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; renderConsult(); }
-function closeConsult() { initConsult(); ST.consult.open = null; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
-function redrawConsultTarot() { ST.consult.tarotRnd = Date.now() >>> 0; renderConsult(); }
+function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; ST.consult.scrollAfter = false; renderConsult(); }
+function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
+function closeConsult() { initConsult(); ST.consult.open = null; ST.consult.scrollAfter = false; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+function redrawConsultTarot() { initConsult(); ST.consult.tarotRnd = Date.now() >>> 0; ST.consult.scrollAfter = true; renderConsult(); }
 
 function buildConsult(key, p, isMale, t, pd) {
   const w = westOf(t), whoIdx = p === ST.p1 ? 1 : 2, Y = t.getFullYear(), m = t.getMonth() + 1;
