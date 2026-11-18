@@ -67,7 +67,8 @@ function saveFromForms() {
   } catch (e) { msgs.push("여자: " + e.message); }
   if (msgs.length) { $("setMsg").textContent = msgs.join(" / "); return; }
   ST.profiles = [buildProfile(form1), buildProfile(form2)];
-  saveProfiles(ST.profiles);
+  try { saveProfiles(ST.profiles); }
+  catch { const m = "브라우저 저장에 실패했습니다(비공개 모드·저장 공간 부족 추정). 오늘 화면은 동작하지만, 다음 접속 때 설정을 다시 입력해야 합니다."; $("setMsg").textContent = m; alert(m); }
   ST.p1 = p1; ST.p2 = p2;
   $("modalSettings").hidden = true;
   renderAll();
@@ -264,4 +265,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const hashTab = location.hash.match(/^#(home|consult|myeongban|couple|daily|western|luck|tojeong|tarot|shinjeom)$/);
   if (hashTab) switchTab(hashTab[1]); else renderAll(); // 잠금 없이 바로 표시(프로필 없으면 설정 창이 열림)
   if (location.search.includes("selftest")) selfTest().catch(() => {}); // 자동 점검은 ?selftest 일 때만(평소엔 콘솔 await selfTest())
+
+  // 날짜가 바뀌면(밤새 켜둔 PWA 탭 등) 현재 탭을 자동으로 다시 그린다 — 어제의 '오늘'이 남지 않게
+  let lastDay = ymdOf(today());
+  const checkDay = () => {
+    if (ST.p1 && ST.p2 && document.visibilityState === "visible" && ymdOf(today()) !== lastDay) { lastDay = ymdOf(today()); renderAll(); }
+  };
+  document.addEventListener("visibilitychange", checkDay);
+  setInterval(checkDay, 60000);
 });
