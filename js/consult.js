@@ -10,6 +10,7 @@ const CONSULT_MENU = [
   ["romance", "💞", "연애운세", "우리 사랑의 오늘 상태를 알려드립니다"],
   ["tarot", "🃏", "타로운세", "타로 카드를 이용한 나의 오늘 운세"],
   ["wealth", "💰", "재물운세", "금전적 재물운에 대해 알려드립니다"],
+  ["stock", "📈", "주식운세", "투자·매매의 컨디션을 알려드립니다"],
   ["health", "🌿", "건강운세", "나의 몸과 마음 건강에 대해 알려드립니다"],
   ["job", "💼", "직업운세", "직업과 관련된 운세를 알려드립니다"],
   ["week", "📅", "週 운세", "일주일간의 운세 흐름을 알려드립니다"],
@@ -173,6 +174,33 @@ function buildConsult(key, p, isMale, t, pd) {
     rows.push({ t: `이번 달(${m}월) 재물운 ★${mL.wealth}`, s: 0, x: mL.wTags.length ? mL.wTags.map(x2 => ({ "재성월": "재물 기운이 들어옴", "식신생재": "일한 만큼 돈이 따라옴", "겁재(지출)": "지출·경쟁이 늘어남", "용신월": "부족한 기운이 채워짐", "일지 충": "변동이 생기기 쉬움", "일지 육합": "주변의 도움", "일지 삼합": "힘을 합침" })[x2] || x2).join(" · ") : "평범한 재물의 달" });
     rows.push({ t: "🍀 로또 판정", s: 0, x: `합산 ${L.score}점 — ${L.ok ? "로또 사기 좋은 날(사주 재물≥2 · 서양 재물>0 · 합산≥20)" : "오늘은 아님"} (재미용 — 추첨은 무작위)` });
     return wrap(title, pd, rows, pd.wealth.raw >= 2 ? "돈의 흐름이 열려 있는 날. 계약·구매·정산처럼 '돈이 오가는 일'에 유리합니다." : pd.wealth.raw < 0 ? "지출이 늘기 쉬운 날. 큰 결제와 투자는 하루 미루세요." : "평범한 재물의 날. 무리한 베팅보다 착실한 소비 관리가 이득입니다.");
+  }
+
+  if (key === "stock") {
+    title = "주식운세 — 투자·매매 컨디션";
+    const dw = dayWealth(p, t), iv = investSync(p, t);
+    // 사주 쪽 — 재성 성향과 손실 경계
+    rows.push({ t: `오늘 재물 기운 ${dw.raw}점`, s: dw.raw, x: dw.tags.length ? "근거: " + dw.tags.join(" · ") : "특별한 재물 기운 없는 평범한 하루" });
+    if (pd.sg === "편재") rows.push({ t: "투자 성향 — 편재(단타·변동성)", s: 2, x: "기회를 빠르게 잡는 기운. 변동성 매매엔 유리하지만 욕심은 두 배로 커진다" });
+    else if (pd.sg === "정재") rows.push({ t: "투자 성향 — 정재(안정·장기)", s: 2, x: "차분한 계산이 살아나는 날. 배당·적립식·장유물(장기 보유) 관점에 유리" });
+    else if (pd.sg === "겁재") rows.push({ t: "겁재(손실 경계)", s: -3, x: "투기 심리와 경쟁이 커지는 날 — 추격 매수·레버리지·남들이 사는 것 따라 사기 금지" });
+    if (pd.rel === "충") rows.push({ t: "일지 충(변동성)", s: -2, x: "시장·내 자리가 흔들리는 날 — 호가 실수·타이밍 놓침 조심" });
+    if (pd.dayGZ.oh === p.yongsin) rows.push({ t: "용신일(판단력 회복)", s: 3, x: "부족한 기운이 채워져 냉정한 판단이 가능한 날" });
+    // 서양 쪽 — 투자 행성 트랜짓
+    iv.harm.forEach(x => rows.push({ t: `${x.t.ko} 조화 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성이 내 ${x.n.ko}와 조화 — ${x.t.mean} 기운이 나를 돕는 날` }));
+    iv.tense.forEach(x => rows.push({ t: `${x.t.ko} 긴장 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성에 긴장각 — ${x.t.mean} 쪽에 변수가 끼어들기 쉬운 날` }));
+    // 판정 — 사주 재물×3 + 투자 행성 합산
+    const total = Math.round(dw.raw * 3 + iv.west);
+    const verdict = total >= 12 ? ["적극 매매 유리", "b-charge", "기운이 가장 잘 맞는 날. 계획한 매매라면 움직여도 좋습니다."]
+      : total >= 6 ? ["분할 접근 유리", "b-flow", "방향은 맞지만 확신은 중간. 한 번에 다 넣지 말고 나눠 접근하세요."]
+      : total >= 0 ? ["관망", "b-neutral", "특별한 신호 없는 날. 관찰하고 기회를 기다리는 게 이득입니다."]
+      : total >= -6 ? ["추격·레버리지 조심", "b-tension", "실수가 늘어나는 기운. 포지션을 줄이고 손절 원칙을 지키세요."]
+      : ["현금 지키기", "b-tension", "손실 기운이 우세한 날. 새 진입은 피하고 현금을 지키는 것이 최선."];
+    return `<div class="card gold"><div class="sec-t">${title} <small>${esc(p.name)} · ${fmtYMD(t)} · 판정 ${total}점</small></div>
+      <div style="margin-bottom:10px"><span class="badge ${verdict[1]}">${verdict[0]}</span></div>
+      ${rows.map(x => scoreRow(x)).join("")}
+      <div class="sec-t">조언</div><div class="reason">${esc(verdict[2])}</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:8px">⚠️ 사주·점성술 기반의 재미용 참고이며 <b>투자 판단이나 매매 권유가 아닙니다</b>. 실제 투자 결정과 책임은 본인에게 있습니다. 실시간 주가·종목 데이터는 반영되지 않습니다.</div></div>`;
   }
 
   if (key === "health") {

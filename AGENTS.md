@@ -17,12 +17,12 @@
 | `js/chart.js` | 명반 탭 렌더링 (사주 8자·오행·십신·대운) | |
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
 | `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크·합궁·일 상세 모달) | |
-| `js/western.js` | 서양 점성술: synastry + **트랜짓 일별 궁합**(`dailyWestSync` — 오늘의 행성×출생 차트 아스펙트) + 합궁·로또 판정(`lottoOf`·`westMoney`), natal/transit 캐시. astronomy-engine 있을 때만 | |
+| `js/western.js` | 서양 점성술: synastry + 트랜짓 일별 궁합(`dailyWestSync`) + 합궁·로또 판정(`lottoOf`·`westMoney`) + **투자 트랜짓**(`investSync` — 금성·목성·토성·명왕성), planetPositions 공용화·캐시. astronomy-engine 있을 때만 | |
 | `js/luck.js` | 재물·애정운 탭 (두 사람 12개월 월운 ★, 계산은 engine.js `monthlyLuck`) | |
 | `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
 | `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
 | `js/shinjeom.js` | 신점 탭 (오방기 뽑기 — 전체운 2깃발 + 월별 12깃발, 월운에 따라 가중) | |
-| `js/consult.js` | 운세 상담 탭 (사람 선택 칩 → 종합·심리·애정·연애·타로·재물·건강·직업·주간·년간 10메뉴 아코디언 — engine.js `personDay` 등으로 계산) | |
+| `js/consult.js` | 운세 상담 탭 (사람·날짜 선택 → 종합·심리·애정·연애·타로·재물·**주식**·건강·직업·주간·년간 11메뉴 아코디언 — engine.js `personDay` 등으로 계산, 날짜 clamp 1900~2100) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 
 ## 규칙

@@ -15,10 +15,9 @@ const ASPECTS = [
   { ang: 180, orb: 8, ko: "대립(Opposition)", mean: "강한 끌림과 함께 오는 긴장 — 자석 같은 인연", s: 3 }
 ];
 
-function westPositions(p) {
-  const A = window.Astronomy;
-  const d = new Date(p.profile.y, p.profile.m - 1, p.profile.d, p.profile.h === "" ? 12 : +p.profile.h, +p.profile.mi || 0, 0);
-  return WEST_PLANETS.map(x => {
+function planetPositions(list, date) { // 행성 목록의 황경 위치(별자리·원소 포함) — 달은 특수 계산
+  const A = window.Astronomy, d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+  return list.map(x => {
     let elon;
     if (x.key === "Moon") elon = A.EclipticGeoMoon(d).lon;
     else elon = A.Ecliptic(A.GeoVector(A.Body[x.key], d, true)).elon;
@@ -26,6 +25,8 @@ function westPositions(p) {
     return { ...x, elon, sign: z.name, el: z.el }; // el = 별자리 원소(불·흙·바람·물)
   });
 }
+const natalDate = p => new Date(p.profile.y, p.profile.m - 1, p.profile.d, p.profile.h === "" ? 12 : +p.profile.h, +p.profile.mi || 0, 0);
+function westPositions(p) { return planetPositions(WEST_PLANETS, natalDate(p)); }
 
 function renderWestern() {
   const p1 = ST.p1, p2 = ST.p2, zc = zodiacCouple(p1.zodiac, p2.zodiac);
@@ -89,16 +90,7 @@ function natalOf(p) { // 출생 차트 행성 위치 (사람당 1회 계산 후 
 function transitsOf(date) { // 그날의 행성 위치 (날짜당 1회 계산 후 캐시 — 너무 커지면 비워 메모리 위생)
   const k = ymdOf(date);
   if (TRANSIT_CACHE.size > 500) TRANSIT_CACHE.clear();
-  if (!TRANSIT_CACHE.has(k)) {
-    const A = window.Astronomy, d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
-    TRANSIT_CACHE.set(k, WEST_PLANETS.map(x => {
-      let elon;
-      if (x.key === "Moon") elon = A.EclipticGeoMoon(d).lon;
-      else elon = A.Ecliptic(A.GeoVector(A.Body[x.key], d, true)).elon;
-      const z = ZODIAC[Math.floor(((elon % 360) + 360) % 360 / 30)];
-      return { ...x, elon, sign: z.name, el: z.el }; // el = 별자리 원소 — 심리운세 등에서 사용
-    }));
-  }
+  if (!TRANSIT_CACHE.has(k)) TRANSIT_CACHE.set(k, planetPositions(WEST_PLANETS, date));
   return TRANSIT_CACHE.get(k);
 }
 function findTAspect(a, b) { // 두 황경 사이의 트랜짓 아스펙트 찾기
@@ -151,4 +143,40 @@ const westMoney = (w, who) => w ? w.aspects.filter(x => x.who === who && x.t.key
 function lottoOf(p, who, date, w) {
   const s = dayWealth(p, date), m = westMoney(w, who), score = Math.round(s.raw * 4 + m);
   return { ok: w ? s.raw >= 2 && m > 0 && score >= 20 : s.raw >= 4, score, saju: s, west: Math.round(m * 10) / 10 };
+}
+
+// ---------- 투자(주식) 트랜짓 — 금성·목성·토성·명왕성 ----------
+// 금성(돈)·목성(확장·행운)·토성(제한·손실 경계)·명왕성(대량 자금)이 출생 차트와 만드는 각으로
+// 그 사람의 그날 투자 컨디션을 계산한다. 사주 재물(engine.js wealthRaw)과 함께 consult.js의 주식운세에서 사용.
+const INVEST_PLANETS = [
+  { key: "Venus", ko: "금성", mean: "돈·즐거움", w: 2 },
+  { key: "Jupiter", ko: "목성", mean: "확장·행운", w: 2 },
+  { key: "Saturn", ko: "토성", mean: "제한·손실 경계", w: 1.5 },
+  { key: "Pluto", ko: "명왕성", mean: "대량 자금·변혁", w: 1.5 }
+];
+const INVEST_CACHE = new Map(), NATAL_FULL_CACHE = new Map();
+function investTransits(date) { // 그날의 투자 행성 위치 (날짜당 1회 계산 후 캐시)
+  const k = ymdOf(date);
+  if (INVEST_CACHE.size > 500) INVEST_CACHE.clear();
+  if (!INVEST_CACHE.has(k)) INVEST_CACHE.set(k, planetPositions(INVEST_PLANETS, date));
+  return INVEST_CACHE.get(k);
+}
+function natalFullOf(p) { // 출생 차트의 투자 행성 위치 (사람당 1회 계산 후 캐시)
+  if (!NATAL_FULL_CACHE.has(p)) NATAL_FULL_CACHE.set(p, planetPositions(INVEST_PLANETS, natalDate(p)));
+  return NATAL_FULL_CACHE.get(p);
+}
+// 그 사람 기준 오늘의 투자 기운 — 투자 행성 × 본인 투자 행성의 16쌍 각을 합산(조화 +, 긴장 −)
+function investSync(p, date) {
+  const T = investTransits(date), N = natalFullOf(p);
+  const harm = [], tense = [];
+  let west = 0;
+  for (const t of T) for (const n of N) {
+    const a = findTAspect(t.elon, n.elon);
+    if (!a) continue;
+    const c = a.s * t.w;
+    west += c;
+    const item = { t, n, a, diff: tDiff(t, n), c };
+    (a.s > 0 ? harm : tense).push(item);
+  }
+  return { harm, tense, west: Math.round(west * 10) / 10 };
 }

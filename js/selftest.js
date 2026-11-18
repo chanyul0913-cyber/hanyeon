@@ -130,6 +130,9 @@ async function selfTest() {
       d = addDays(d, 1);
     }
     ok(wSync > 0); ok(wLotto > 0 && wLotto < 80); // 로또일은 1년에 있되 드물게
+    // 13) 투자(주식) 트랜짓 — 합산 범위·쌍 개수 상한(4×4=16)
+    const iv = investSync(p1, d);
+    ok(typeof iv.west === "number" && Math.abs(iv.west) <= 40 && iv.harm.length + iv.tense.length <= 16);
   }
 
   // 분포 요약(참고용)

@@ -12,7 +12,7 @@ const today = () => new Date();
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const $ = id => document.getElementById(id);
 const ymdStr = n => `${Math.floor(n / 10000)}-${String(Math.floor(n / 100) % 100).padStart(2, "0")}-${String(n % 100).padStart(2, "0")}`;
-const fmtYMD = n => `${Math.floor(n / 100) % 100}/${String(n % 100).padStart(2, "0")}(${dowK[new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100).getDay()]})`;
+const fmtYMD = n => { if (n instanceof Date) n = ymdOf(n); return `${Math.floor(n / 100) % 100}/${String(n % 100).padStart(2, "0")}(${dowK[new Date(Math.floor(n / 10000), Math.floor(n / 100) % 100 - 1, n % 100).getDay()]})`; };
 const gradeCls = k => ({ peak: "grade-peak", good: "grade-good", normal: "grade-normal", care: "grade-care", bad: "grade-bad" }[k] || "grade-normal");
 
 // 원형 게이지 SVG
