@@ -38,12 +38,19 @@ const seedHash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^
 function renderConsult() {
   initConsult();
   const who = ST.consult.who, p = who === "m" ? ST.p1 : ST.p2, isMale = who === "m";
-  const now = new Date(), t = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+  const t = consultDate(); // 선택한 날짜(기본 오늘)
   const pd = personDay(p, t);
   const chip = (k, label) => `<button onclick="setConsultWho('${k}')" style="${who === k ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}">${label}</button>`;
-  const head = `<div class="card gold"><div class="sec-t">운세 상담 <small>${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")} (${dowK[t.getDay()]})</small><span style="flex:1"></span><button onclick="closeConsult()" style="font-size:12px;padding:4px 10px">상담 종료</button></div>
-    <div class="reason" style="border-left-color:var(--gold)"><b>${esc(josa(p.name, "과", "와"))}</b> 운세 상담이 시작되었어요 — 아래 메뉴를 눌러 보세요. <div class="rx">모든 운세는 ${esc(p.name)}의 사주(일주 ${p.dmHanja})와 오늘의 간지·트랜짓으로 계산합니다.</div></div>
-    <div class="chips" style="margin-top:10px"><span style="color:var(--sub);font-size:12.5px;align-self:center">누구의 운세?</span> ${chip("m", `남자 · ${esc(ST.p1.name)}`)} ${chip("f", `여자 · ${esc(ST.p2.name)}`)}</div></div>`;
+  const todayN = ymdOf(today()), isToday = ST.consult.date === todayN;
+  const chipD = n => { const on = ST.consult.date === ymdOf(addDays(today(), n)); return `<button style="font-size:12px;padding:3px 8px;${on ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}" onclick="setConsultDate(${n})">${n === 0 ? "오늘" : n > 0 ? n + "일 후" : (-n) + "일 전"}</button>`; };
+  const head = `<div class="card gold"><div class="sec-t">운세 상담<span style="flex:1"></span><button onclick="closeConsult()" style="font-size:12px;padding:4px 10px">상담 종료</button></div>
+    <div class="daily-head" style="margin:0 0 8px"><button onclick="shiftConsultDate(-1)" title="하루 전">◀</button>
+      <div class="today-ilju" style="font-size:18px">${fmtYMD(ST.consult.date)}</div>
+      <button onclick="shiftConsultDate(1)" title="하루 후">▶</button>
+      ${isToday ? "" : `<button onclick="goConsultToday()" style="font-size:12px;padding:4px 10px">오늘로</button>`}</div>
+    <div class="reason" style="border-left-color:var(--gold)"><b>${esc(josa(p.name, "과", "와"))}</b> 운세 상담이 시작되었어요 — 날짜를 고르고 아래 메뉴를 누르면 <b>그 날의 운세</b>가 펼쳐집니다. <div class="rx">모든 운세는 ${esc(p.name)}의 사주(일주 ${p.dmHanja})와 선택 날짜(${fmtYMD(ST.consult.date)})의 간지·트랜짓으로 계산합니다.</div></div>
+    <div class="chips" style="margin-top:10px"><span style="color:var(--sub);font-size:12.5px;align-self:center">누구의 운세?</span> ${chip("m", `남자 · ${esc(ST.p1.name)}`)} ${chip("f", `여자 · ${esc(ST.p2.name)}`)}</div>
+    <div class="chips" style="margin-top:8px">${[-7, -6, -5, -4, -3, -2, -1].map(chipD).join("")}${chipD(0)}${[1, 2, 3, 4, 5, 6, 7].map(chipD).join("")}</div></div>`;
 
   // 아코디언 — 열린 메뉴의 결과 카드를 그 메뉴 줄 바로 아래에 끼워 넣는다(맨 밑까지 내려갈 필요 없음)
   const menu = CONSULT_MENU.map(([k, ic, ti, de]) => {
@@ -53,7 +60,7 @@ function renderConsult() {
     return row + (open ? `<div id="consultReading">${buildConsult(k, p, isMale, t, pd)}</div>` : "");
   }).join("");
 
-  $("consultBody").innerHTML = head + `<div>${menu}</div>` + (ST.consult.open ? "" : `<div class="card" style="text-align:center;color:var(--sub);font-size:13px">메뉴를 누르면 ${esc(p.name)}의 운세가 바로 아래 펼쳐집니다.</div>`);
+  $("consultBody").innerHTML = head + `<div>${menu}</div>` + (ST.consult.open ? "" : `<div class="card" style="text-align:center;color:var(--sub);font-size:13px">메뉴를 누르면 <b>${fmtYMD(ST.consult.date)}</b> ${esc(p.name)}의 운세가 바로 아래 펼쳐집니다.</div>`);
   if (ST.consult.scrollAfter) { // 메뉴 클릭 직후 — 클릭한 줄이 화면 위에 오도록 부드럽게 스크롤(결과가 바로 밑에 보임)
     ST.consult.scrollAfter = false;
     const el = document.getElementById("consultRow-" + ST.consult.open);
@@ -61,11 +68,26 @@ function renderConsult() {
   }
 }
 
-function initConsult() { if (!ST.consult) ST.consult = { who: "m", open: null, tarotRnd: 0 }; }
+function initConsult() {
+  if (!ST.consult) ST.consult = { who: "m", open: null, tarotRnd: 0 };
+  if (!ST.consult.date) ST.consult.date = ymdOf(today());
+}
+function consultDate() { const c = ST.consult.date; return new Date(Math.floor(c / 10000), Math.floor(c / 100) % 100 - 1, c % 100, 12); }
 function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; ST.consult.scrollAfter = false; renderConsult(); }
 function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
 function closeConsult() { initConsult(); ST.consult.open = null; ST.consult.scrollAfter = false; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
 function redrawConsultTarot() { initConsult(); ST.consult.tarotRnd = Date.now() >>> 0; ST.consult.scrollAfter = true; renderConsult(); }
+// 날짜 선택 — 칩(오늘 기준 ±7일)과 하루 이동. lunar.js 안전 범위(1900~2100)로 clamp
+function setConsultDate(n) { initConsult(); ST.consult.date = ymdOf(addDays(today(), n)); ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
+function shiftConsultDate(dir) {
+  initConsult();
+  let y = Math.floor(ST.consult.date / 10000), m2 = Math.floor(ST.consult.date / 100) % 100, d2 = ST.consult.date % 100;
+  const dt = new Date(y, m2 - 1, d2 + dir, 12);
+  const n = ymdOf(dt);
+  if (n < 19000101 || n > 21001231) return;
+  ST.consult.date = n; ST.consult.scrollAfter = false; renderConsult();
+}
+function goConsultToday() { initConsult(); ST.consult.date = ymdOf(today()); ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
 
 function buildConsult(key, p, isMale, t, pd) {
   const w = westOf(t), whoIdx = p === ST.p1 ? 1 : 2, Y = t.getFullYear(), m = t.getMonth() + 1;
@@ -180,16 +202,17 @@ function buildConsult(key, p, isMale, t, pd) {
   }
 
   if (key === "week") {
-    title = "週 운세 — 오늘부터 7일";
+    title = "週 운세 — 선택 날짜 중심 앞뒤 3일";
+    const todayN = ymdOf(today());
     const rows7 = [];
     let best = null;
-    for (let i = 0; i < 7; i++) {
+    for (let i = -3; i <= 3; i++) {
       const dt = addDays(t, i), x = personDay(p, dt);
       if (!best || x.score > best.score) best = x;
-      rows7.push({ x });
+      rows7.push({ x, off: i });
     }
-    const list = rows7.map(({ x }, i) => `<div class="rank-row" style="${x.date === best.date ? "background:rgba(240,217,140,.06)" : ""}"><span class="rk">${i === 0 ? "오늘" : i + 1}</span><span class="today-ilju">${fmtYMD(x.date)}</span><span class="today-date">${x.dayGZ.hanja} · ${x.sg}(${toneWord(x.sg)})${x.rel ? " · " + x.rel : ""}</span><span style="flex:1"></span><b style="font-family:var(--serif);font-size:15px;color:${x.score >= 68 ? "var(--good)" : x.score >= 38 ? "var(--ink)" : "var(--bad)"}">${x.score}</b></div>`).join("");
-    return `<div class="card"><div class="sec-t">${title} <small>${esc(p.name)}</small></div>${list}
+    const list = rows7.map(({ x, off }) => `<div class="rank-row" style="${x.date === best.date ? "background:rgba(240,217,140,.06)" : ""}"><span class="rk">${off === 0 ? "선택" : off > 0 ? "+" + off : off}</span><span class="today-ilju">${fmtYMD(x.date)}${x.date === todayN ? ' <b style="color:var(--gold2)">오늘</b>' : ""}</span><span class="today-date">${x.dayGZ.hanja} · ${x.sg}(${toneWord(x.sg)})${x.rel ? " · " + x.rel : ""}</span><span style="flex:1"></span><b style="font-family:var(--serif);font-size:15px;color:${x.score >= 68 ? "var(--good)" : x.score >= 38 ? "var(--ink)" : "var(--bad)"}">${x.score}</b></div>`).join("");
+    return `<div class="card"><div class="sec-t">${title} <small>${esc(p.name)} · ${fmtYMD(t)}</small></div>${list}
       <div class="reason" style="margin-top:10px"><b>가장 좋은 날</b> — ${fmtYMD(best.date)} (${best.dayGZ.hanja}일, ${best.score}점 · ${best.grade.label}) <div class="rx">중요한 만남·결정·시작은 이 날에 배치하는 게 유리합니다.</div></div>
       <div style="font-size:12px;color:var(--sub);margin-top:6px">점수는 그날 간지가 ${esc(p.name)}의 사주와 맺는 십신·지지 관계·용신·신살의 합산입니다.</div></div>`;
   }
@@ -213,7 +236,7 @@ function gradeRow(pd) {
   return [{ t: `종합 ${pd.score}점 — ${pd.grade.label}`, s: pd.score - 50, x: "십신 톤 + 지지 합충 + 용신·신살 + 오행 유입의 합산(0~100)" }];
 }
 function wrap(title, r, rows, advice) {
-  return `<div class="card gold"><div class="sec-t">${title} <small>${r.grade ? `${r.score}점 · ${r.grade.label}` : ""}</small></div>
+  return `<div class="card gold"><div class="sec-t">${title} <small>${r.date ? fmtYMD(r.date) + " · " : ""}${r.grade ? `${r.score}점 · ${r.grade.label}` : ""}</small></div>
     ${rows.map(x => scoreRow(x)).join("")}
     ${advice ? `<div class="sec-t">조언</div><div class="reason">${esc(advice)}</div>` : ""}</div>`;
 }
