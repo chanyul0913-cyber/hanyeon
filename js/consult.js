@@ -200,10 +200,22 @@ function buildConsult(key, p, isMale, t, pd) {
       : total >= 0 ? ["관망", "b-neutral", "특별한 신호 없는 날. 관찰하고 기회를 기다리는 게 이득입니다."]
       : total >= -6 ? ["추격·레버리지 조심", "b-tension", "실수가 늘어나는 기운. 포지션을 줄이고 손절 원칙을 지키세요."]
       : ["현금 지키기", "b-tension", "손실 기운이 우세한 날. 새 진입은 피하고 현금을 지키는 것이 최선."];
+    // 상품별 컨디션 — 현물 주식(정재·안정 기운)과 파생·선물·레버리지(편재·변동 기운)는 성격이 다르다
+    // 명리: 정재=안정 재물 / 편재=변동·투기 재물. 점성: 금성=돈, 토성=제한·손실, 명왕성=레버리지·대량 자금
+    const venusHarm = iv ? iv.harm.filter(x => x.t.key === "Venus").reduce((s, x) => s + x.c, 0) : 0;
+    const saturnTense = iv ? iv.tense.filter(x => x.t.key === "Saturn").reduce((s, x) => s + x.c, 0) : 0; // 음수(감점)
+    const plutoHarm = iv ? iv.harm.filter(x => x.t.key === "Pluto").reduce((s, x) => s + x.c, 0) : 0;
+    const spot = Math.round((dw.raw + (pd.sg === "정재" ? 2 : pd.sg === "편재" ? -2 : 0) + venusHarm + saturnTense * 1.5) * 10) / 10;
+    const spotLv = spot >= 3 ? ["유리", "b-charge"] : spot >= 0 ? ["보통", "b-neutral"] : spot >= -3 ? ["조심", "b-tension"] : ["위험", "b-tension"];
+    const deriv = Math.round(((pd.sg === "편재" ? 2 : pd.sg === "정재" ? -2 : 0) + plutoHarm + (pd.rel === "충" ? 1 : 0) + saturnTense) * 10) / 10;
+    const derivLv = deriv >= 4 ? ["유리 (고변동)", "b-charge"] : deriv >= 1 ? ["기회 (고변동 주의)", "b-flow"] : deriv >= -2 ? ["보통", "b-neutral"] : ["조심", "b-tension"];
+    const instNote = deriv > spot ? "변동성을 직접 다루는 파생·선물·레버리지 쪽 기운이 현물보다 강한 날입니다." : spot > deriv ? "안정적인 현물 주식 쪽 기운이 파생보다 강한 날입니다." : "현물과 파생의 기운 차이가 크지 않은 날입니다.";
     return `<div class="card gold"><div class="sec-t">${title} <small>${esc(p.name)} · ${fmtYMD(t)} · 판정 ${total}점</small></div>
-      <div style="margin-bottom:10px"><span class="badge ${verdict[1]}">${verdict[0]}</span></div>
+      <div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span class="badge ${verdict[1]}">${verdict[0]}</span>
+        <span class="badge ${spotLv[1]}" title="정재·안정 기운 기준">🏢 현물 주식 — ${spotLv[0]}</span>
+        <span class="badge ${derivLv[1]}" title="편재·변동 기운 기준">🌊 파생·선물·레버리지 — ${derivLv[0]}</span></div>
       ${rows.map(x => scoreRow(x)).join("")}
-      <div class="sec-t">조언</div><div class="reason">${esc(verdict[2])}</div>
+      <div class="sec-t">조언</div><div class="reason">${esc(verdict[2])} ${esc(instNote)}</div>
       <div style="font-size:12px;color:var(--sub);margin-top:8px">⚠️ 사주·점성술 기반의 재미용 참고이며 <b>투자 판단이나 매매 권유가 아닙니다</b>. 실제 투자 결정과 책임은 본인에게 있습니다. 실시간 주가·종목 데이터는 반영되지 않습니다.</div></div>`;
   }
 
