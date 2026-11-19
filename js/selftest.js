@@ -135,6 +135,15 @@ async function selfTest() {
     ok(typeof iv.west === "number" && Math.abs(iv.west) <= 40 && iv.harm.length + iv.tense.length <= 16);
   }
 
+  // 14) 이별·재회 — 스캔 범위·판정 단계·월 경계 순회(2026-11-30→12월 넘김)
+  const rs = reunionScore(p1, p2, new Date(2026, 10, 20, 12));
+  ok(typeof rs.score === "number" && rs.score >= -25 && rs.score <= 35 && Array.isArray(rs.why));
+  const ba = breakupAnalysis(p1, p2, 20261130);
+  ok(ba.daysSince >= 0 && ba.flow >= 0 && ba.flow <= 100 && ba.final >= 0 && ba.final <= 100 && ba.level && ba.level.k);
+  ok(ba.days.length === 90 && ba.top.length <= 5);
+  const ba2 = breakupAnalysis(p1, p2, 20261031); // 10월 말 시작 — 11월 넘김 순회 확인
+  ok(ba2.daysSince >= ba.daysSince); // 같은 오늘 기준, 더 이른 이별 날짜면 경과 일수가 크거나 같아야 함
+
   // 분포 요약(참고용)
   const dist = { peak: 0, good: 0, normal: 0, care: 0, bad: 0 };
   d = new Date(2026, 10, 15, 12);

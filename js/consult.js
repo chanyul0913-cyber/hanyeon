@@ -8,6 +8,7 @@ const CONSULT_MENU = [
   ["mind", "🧠", "심리운세", "내 마음과 감정의 흐름을 알려드립니다"],
   ["love", "💗", "애정운세", "나의 사랑과 이성운을 알려드립니다"],
   ["romance", "💞", "연애운세", "우리 사랑의 오늘 상태를 알려드립니다"],
+  ["breakup", "💔", "이별·재회 상담", "헤어진 관계의 마음과 재회 시기를 봅니다"],
   ["tarot", "🃏", "타로운세", "타로 카드를 이용한 나의 오늘 운세"],
   ["wealth", "💰", "재물운세", "금전적 재물운에 대해 알려드립니다"],
   ["stock", "📈", "주식운세", "투자·매매의 컨디션을 알려드립니다"],
@@ -78,6 +79,14 @@ function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open =
 function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
 function closeConsult() { initConsult(); ST.consult.open = null; ST.consult.scrollAfter = false; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
 function redrawConsultTarot() { initConsult(); ST.consult.tarotRnd = Date.now() >>> 0; ST.consult.scrollAfter = true; renderConsult(); }
+// 이별·재회 — 입력 상태 관리
+function setBrokeDate(v) { if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 };
+  const m = (v || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return;
+  const n = +m[1] * 10000 + +m[2] * 100 + +m[3];
+  if (n < 19000101 || n > ymdOf(today())) return;
+  ST.breakup.date = n; renderConsult(); }
+function setBreakupWho(k) { if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 }; ST.breakup.who = k; ST.breakup.tarotRnd = 0; renderConsult(); }
+function redrawBreakupTarot() { if (ST.breakup) ST.breakup.tarotRnd = Date.now() >>> 0; renderConsult(); }
 // 날짜 선택 — 칩(오늘 기준 ±7일)과 하루 이동. lunar.js 안전 범위(1900~2100)로 clamp
 function setConsultDate(n) { initConsult(); ST.consult.date = ymdOf(addDays(today(), n)); ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
 function shiftConsultDate(dir) {
@@ -143,6 +152,64 @@ function buildConsult(key, p, isMale, t, pd) {
     const wHap = !!(w && w.herStrong);
     if (wHap) rows.push({ t: "✿ 서양합궁", s: 5, x: "오늘의 달·금성이 여자 출생 차트를 조화각으로만 비춤 — 여자가 편안해지는 날" });
     return wrap(title, cr, rows, cr.flags.danger ? "오늘은 예민한 이야기를 미루는 게 사랑을 지키는 길입니다. 말투를 세 배로 부드럽게." : cr.flags.herStrong || wHap ? "여자가 편안해지는 날 — 오늘 만나면 관계가 한 단계 부드러워집니다." : cr.grade.k === "peak" || cr.grade.k === "good" ? "두 사람 모두 기운이 열려 있습니다. 하고 싶었던 말을 오늘 꺼내세요." : "평소처럼 존중하는 것만으로 충분한 날입니다.");
+  }
+
+  if (key === "breakup") {
+    title = "이별·재회 상담";
+    const who = isMale ? "m" : "f"; // buildConsult 스코프 — isMale에서 파생
+    // 상태 초기화 — 헤어진 날짜·청한 사람이 있으면 바로 분석
+    if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 };
+    const partner = who === "m" ? ST.p2 : ST.p1, viewer = who === "m" ? ST.p1 : ST.p2;
+    const viewerWantOh = who === "m" ? ST.p1.jaeOh : ST.p2.gwanOh, partnerWantOh = who === "m" ? ST.p2.gwanOh : ST.p1.jaeOh;
+    const ready = !!(ST.breakup.date && ST.breakup.who);
+    const whoBtn = (k, label) => `<button onclick="setBreakupWho('${k}')" style="${ST.breakup.who === k ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}">${label}</button>`;
+    const head2 = `<div class="reason" style="border-left-color:var(--gold)">두 사람의 사주와 그날 기운으로 <b>상대의 마음 · 인연의 잔여 강도 · 연락·재회가 맞는 날</b>을 계산합니다. 답은 규칙 기반 근사치이며 재미·참고용입니다.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+        <label style="font-size:13px;color:var(--sub)">헤어진 날짜 <input type="date" onchange="setBrokeDate(this.value)" value="${ST.breakup.date ? ymdStr(ST.breakup.date) : ""}" style="margin-left:8px"></label>
+        <div class="chips" style="margin:0"><span style="color:var(--sub);font-size:12.5px;align-self:center">누가 청했나요?</span> ${whoBtn("m", `남자가 청함`)} ${whoBtn("f", `여자가 청함`)} ${whoBtn("both", `상호 합의`)}</div>
+        ${ST.breakup.date && !ST.breakup.who ? '<div style="color:var(--sub);font-size:12.5px">누가 청했는지 선택하면 분석이 시작됩니다.</div>' : ""}
+      </div>`;
+    if (!ready) return `<div class="card gold"><div class="sec-t">${title}</div>${head2}</div>`;
+
+    // 분석 — engine.js breakupAnalysis (고정 인연 + 60일 추이 + 90일 재회 스캔)
+    const A = breakupAnalysis(ST.p1, ST.p2, ST.breakup.date);
+    const lvCls = { recover: "b-charge", time: "b-neutral", end: "b-tension" }[A.level.k];
+    // 타로 5장 — 이별 스프레드 (같은 설정이면 같은 카드)
+    const seed = (seedHash(`${ST.breakup.date}-${ST.p1.name}-${ST.p2.name}-${ST.breakup.who}`) ^ (ST.breakup.tarotRnd || 0)) >>> 0;
+    let x = seed; const pool = TAROT.map((_, i) => i), pick = [];
+    for (let k = 0; k < 5; k++) { x = Math.imul(x ^ x >>> 15, 2246822519) >>> 0; pick.push({ i: pool.splice(x % pool.length, 1)[0], rev: (x >>> 8) % 2 === 1 }); }
+    const BPOS = ["그동안의 관계", "헤어진 뒤 상대의 마음", "상대가 남긴 연결고리", "앞으로의 상대 마음", "이 관계의 미래"];
+    const cards = pick.map(c2 => { const t2 = TAROT[c2.i]; return { t: t2, rev: c2.rev, tone: c2.rev ? t2[7] : t2[6], text: c2.rev ? t2[5] : t2[4] }; });
+    const cardHtml = cards.map((c, k) => `<div class="part"><div class="pt"><span>${BPOS[k]} <span class="pv">${c.t[0]}. ${c.t[1]} · ${c.rev ? "역방향" : "정방향"}</span></span><span class="ps" style="color:${c.tone > 0 ? "var(--good)" : c.tone < 0 ? "var(--bad)" : "var(--sub)"}">${c.tone > 0 ? "긍정" : c.tone < 0 ? "주의" : "복합"}</span></div><div class="px" style="font-size:20px;text-align:center;margin:4px 0;${c.rev ? "transform:rotate(180deg)" : ""}">${c.t[3]}</div><div class="px">${esc(c.text)}</div></div>`).join("");
+    const tSum = cards.reduce((s, c) => s + c.tone, 0) + cards[1].tone;
+    const tVerdict = tSum >= 4 ? "카드는 아직 마음이 완전히 식지 않았다고 봅니다. 연결고리를 끊지 말고 천천히." : tSum >= 1 ? "마음은 복잡하지만 문이 닫힌 상태는 아닙니다. 서두르지 않고 신호를 보세요." : tSum >= -2 ? "정리 중인 마음입니다. 지금은 부재중 신호 — 기다림과 자기 회복이 병행되어야 합니다." : "카드도 마음이 멀어졌다고 봅니다. 붙잡기보다 스스로를 돌보는 시간이 필요합니다.";
+    // 상대의 최근 7일 — 상대가 나를 그리워하는 기운(상대의 관성/재성일) 며칠인지
+    let missDays = 0;
+    for (let i = 1; i <= 7; i++) if (getDayGZ(addDays(today(), i)).oh === partnerWantOh) missDays++;
+    const lvAdvice = {
+      recover: "연결고리가 살아 있습니다. 긴 대화보다 짧고 따뜻한 연락부터 — 아래 '기운이 맞는 날'을 골라 보세요.",
+      time: "서로의 기운이 정리 중입니다. 연락은 미루고, 아래 기운이 맞는 날에 딱 한 번, 짧고 진솔하게.",
+      end: "계산상 연결고리가 약한 상태입니다. 붙잡기보다 자기 회복의 시간으로 쓰는 것이 서로를 위한 길입니다."
+    }[A.level.k];
+    const whoNote = { m: "남자가 청한 이별 — 상대는 상처받은 상태라 사과·안정이 먼저이고, 재연락은 짧고 진솔하게.", f: "여자가 청한 이별 — 상대의 결정을 존중하는 태도가 다시 문을 여는 열쇠입니다.", both: "상호 합의 이별 — 서로에게 시간이 필요한 시기라 무리한 재접촉보다 기다림이 맞습니다." }[ST.breakup.who];
+    return `<div class="card gold"><div class="sec-t">${title}</div>${head2}
+      <div class="gauge-wrap" style="margin-top:10px">${gaugeSVG(A.final, A.level.label)}
+        <div class="gauge-label"><span class="badge ${lvCls}">💔 ${esc(A.level.label)}</span>
+          <table class="mini-tbl" style="margin-top:10px">
+            <tr><td>고정 인연 점수</td><td>${A.c.score} (${A.c.grade}) — 천간합·지지 합충 기준</td></tr>
+            <tr><td>헤어진 뒤 기운 추이</td><td>재결합 기운 ${A.bond}일 vs 이별 기운 ${A.sep}일 (최근 60일)</td></tr>
+            <tr><td>앞 90일 재회 신호</td><td>기운이 맞는 날 ${A.recoveryDays}일 / 90일</td></tr>
+            <tr><td>이별 후 경과</td><td>${A.daysSince}일</td></tr>
+          </table></div></div>
+      <div class="sec-t">상대의 현재 마음 — 타로 5장 <small><button onclick="redrawBreakupTarot()" style="font-size:12px;padding:3px 8px">🔄 다시 뽑기</button></small></div>${cardHtml}
+      <div class="reason"><b>타로 종합</b> — ${esc(tVerdict)}</div>
+      <div class="sec-t">사주로 보는 상대의 마음</div>
+      <div class="reason"><span class="rt">최근 7일</span><div class="rx">상대(${esc(partner.name)})가 나를 그리워하는 기운(관성·재성일)은 7일 중 <b>${missDays}일</b>. 그날의 기조는 '${toneWord(personDay(partner, today()).sg)}' 상태입니다.</div></div>
+      <div class="sec-t">연락·재회 유리한 날 — 앞 90일 TOP 5</div>
+      ${A.top.length ? A.top.map(x2 => `<div class="reason"><span class="rt">${fmtYMD(x2.date)} <span class="rs" style="color:var(--good)">+${x2.score}</span></span><div class="rx">${esc(x2.why.map(y2 => y2.t).join(" · "))}</div></div>`).join("") : '<div class="reason">앞 90일 안에 뚜렷한 재회 신호일이 없습니다 — 무리한 접촉보다 기다림이 유리합니다.</div>'}
+      <div class="sec-t">월별 재회 기운</div><div class="reason"><div class="rx">${A.months.length ? `남자의 재성운과 여자의 관성운이 동시에 드는 달: <b style="color:var(--gold2)">${A.months.join(" · ")}</b> — 연락·재회를 시도하기 좋은 달입니다.` : "향후 12개월 중 두 기운이 겹치는 달은 없습니다."}</div></div>
+      <div class="sec-t">조언</div><div class="reason">${esc(lvAdvice)} ${esc(whoNote)}</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:8px">⚠️ 사주·타로 규칙 기반의 재미용 참고이며 미래를 보장하지 않습니다. 상대의 마음은 대화로 확인하세요.</div></div>`;
   }
 
   if (key === "tarot") {

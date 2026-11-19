@@ -336,6 +336,69 @@ function getYearGZ(Y) {
   return { gan, ji, hanja: gz, ilju: GAN_K[gan] + JI_K[ji] };
 }
 
+// ---------- 이별·재회 상담 ----------
+// 그날 간지가 두 사람의 재회·연락에 어떻게 작용하는지 계산한다.
+// 여자의 관성일(남자 생각이 올라옴)·남자의 재성일(그녀를 그리워함)·두 일지 육합/삼합·천간합이 +,
+// 충·형·원진·최고 위험일은 −. 점수는 연락·재회 시도의 유리함(−8~+30 정도).
+function reunionScore(p1, p2, date) {
+  const d = getDayGZ(date);
+  let s = 0; const why = [];
+  if (d.oh === p2.gwanOh) { s += 6; why.push({ t: "여자의 관성일", x: "남자 생각이 올라오는 기운 — 그녀 쪽에서 마음이 닿기 쉬운 날" }); }
+  if (d.oh === p1.jaeOh) { s += 6; why.push({ t: "남자의 재성일", x: "그녀를 그리워하는 기운 — 남자가 먼저 연락하기 유리한 날" }); }
+  const gh = ganHapWith(d.gan);
+  if (gh && gh.with === p1.dmGan) { s += 6; why.push({ t: "남자와 천간합", x: "그날의 천간이 남자 일간과 합 — 마음이 닿는 날" }); }
+  if (gh && gh.with === p2.dmGan) { s += 6; why.push({ t: "여자와 천간합", x: "그날의 천간이 여자 일간과 합 — 그녀가 마음을 여는 날" }); }
+  const r1 = zaRel(JI_K[d.ji], JI_K[p1.dmJi]), r2 = zaRel(JI_K[d.ji], JI_K[p2.dmJi]);
+  for (const [rel, who] of [[r1, "남자"], [r2, "여자"]]) {
+    if (rel === "육합") { s += 6; why.push({ t: `${who} 일지 육합`, x: "마음과 몸이 다시 닿는 조합 — 재회 신호 중 가장 강함" }); }
+    else if (rel === "삼합") { s += 4; why.push({ t: `${who} 일지 삼합`, x: "두 사람의 힘이 합쳐지는 조합" }); }
+    else if (rel === "충" || rel === "원진") { s -= 8; why.push({ t: `${who} 일지 ${rel}`, x: "마음이 부딪히기 쉬운 날 — 연락·재회 시도는 피할 것" }); }
+    else if (rel === "형") { s -= 5; why.push({ t: `${who} 일지 형`, x: "예민해지기 쉬운 날 — 대화는 짧게" }); }
+  }
+  const r = dailySync(p1, p2, date);
+  if (r.flags.herStrong) { s += 4; why.push({ t: "합궁(✿)", x: "그녀가 편안해지는 날 — 거절당할 가능성이 낮다" }); }
+  if (r.flags.danger) { s -= 10; why.push({ t: "최고 위험일(⚡)", x: "만나면 감정이 크게 부딪히는 날 — 절대 피할 것" }); }
+  else if (r.flags.tension) s -= 4;
+  return { date: ymdOf(date), score: s, why };
+}
+
+// 이별 분석 종합 — 고정 인연 점수 + 헤어진 뒤 기운 추이 + 앞 90일 재회 신호를 합쳐 3단계 판정
+function breakupAnalysis(p1, p2, brokeYmd) {
+  const broke = new Date(Math.floor(brokeYmd / 10000), Math.floor(brokeYmd / 100) % 100 - 1, brokeYmd % 100, 12);
+  const t = new Date(); const todayN = ymdOf(t);
+  const daysSince = Math.max(0, Math.round((t - broke) / 86400000));
+  const c = coupleFixed(p1, p2);
+  // 헤어진 날~오늘(최대 60일 창) — 이별 기운(충·원진)과 재결합 기운(육합·삼합) 비율
+  let bond = 0, sep = 0;
+  const start = new Date(Math.max(broke.getTime(), new Date(t.getFullYear(), t.getMonth(), t.getDate() - 60, 12).getTime()));
+  for (let dt = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 12); ymdOf(dt) <= todayN; dt = addDays(dt, 1)) {
+    const d = getDayGZ(dt);
+    if (["충", "원진"].includes(zaRel(JI_K[d.ji], JI_K[p1.dmJi])) || ["충", "원진"].includes(zaRel(JI_K[d.ji], JI_K[p2.dmJi]))) sep++;
+    if (zaRel(JI_K[d.ji], JI_K[p1.dmJi]) === "육합" || zaRel(JI_K[d.ji], JI_K[p2.dmJi]) === "육합") bond++;
+    else if (zaRel(JI_K[d.ji], JI_K[p2.dmJi]) === "삼합" || zaRel(JI_K[d.ji], JI_K[p1.dmJi]) === "삼합") bond++;
+  }
+  const flow = Math.max(0, Math.min(100, 50 + bond * 6 - sep * 6)); // 최근 흐름
+  // 앞 90일 스캔 — 연락·재회 유리한 날
+  const days = [];
+  let d2 = t;
+  for (let i = 0; i < 90; i++) { days.push(reunionScore(p1, p2, d2)); d2 = addDays(d2, 1); }
+  const top = days.filter(x => x.score >= 6).sort((a, b) => b.score - a.score).slice(0, 5);
+  const recoveryDays = days.filter(x => x.score >= 6).length;
+  const chance = Math.max(0, Math.min(100, recoveryDays * 2.5));
+  const final = Math.max(0, Math.min(100, Math.round(c.score * 0.5 + flow * 0.25 + chance * 0.25)));
+  const level = final >= 55 ? { k: "recover", label: "인연이 끝나지 않았습니다 — 회복 가능" }
+    : final >= 42 ? { k: "time", label: "시간이 필요한 상태입니다" }
+    : { k: "end", label: "계산상 끝난 인연입니다" };
+  // 월별 — 남자 재성월과 여자 관성월이 동시에 드는 달(재회·연락 기운 겹침)
+  const months = [];
+  for (let i = 0; i < 12; i++) {
+    const dt = new Date(t.getFullYear(), t.getMonth() + i, 15, 12);
+    const a = monthlyLuck(p1, true, dt.getFullYear(), dt.getMonth() + 1), b = monthlyLuck(p2, false, dt.getFullYear(), dt.getMonth() + 1);
+    if (a.lTags.some(x => x.includes("이성")) && b.lTags.some(x => x.includes("이성"))) months.push(`${dt.getMonth() + 1}월`);
+  }
+  return { c, daysSince, bond, sep, flow, days, top, recoveryDays, chance, final, level, months, todayN };
+}
+
 // ---------- 토정비결 괘 ----------
 // 간지수 = 천간 선천수(갑기9 을경8 병신7 정임6 무계5) + 지지수 — 태세수·월건수·일진수가 같은 표를 쓴다.
 // 지지수는 공개 조견표(갑자20·경자19 등 30개 값)에서 역산: 29/30 일치.
