@@ -2,7 +2,7 @@
 // 설치 시 index.html을 읽어 그때의 js/*.js?v=N·style.css?v=N "정확한 버전 URL"을 워밍한다.
 // (정적 목록에 버전 없는 URL을 넣으면 ?v=N 요청과 매칭되지 않아 설치 캐시가 무용지물이 된다)
 "use strict";
-const CACHE = "hanyeon-v49";
+const CACHE = "hanyeon-v50";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
@@ -17,7 +17,9 @@ self.addEventListener("install", e => {
   })());
 });
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  // 같은 github.io 오리진을 다른 사이트(luckylab 등)와 공유한다 — caches.keys()는 오리진 전체 캐시를 반환하므로
+  // 반드시 우리 접두사(hanyeon-) 캐시만 정리한다. 필터 없이 지우면 다른 사이트의 오프라인 캐시까지 삭제된다.
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("hanyeon-") && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", e => {
   const req = e.request;

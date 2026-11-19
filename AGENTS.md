@@ -33,6 +33,7 @@
 - 렌더링은 보이는 탭만(`renderAll()` = 현재 탭, `switchTab`이 열 때 그림). 새 탭을 추가하면 `renderAll`의 표(R)와 `switchTab` 해시 정규식에 등록. 렌더 중 오류는 `renderAll`이 탭 상단에 ⚠ 오류 카드로 표시하고(성공 렌더마다 정리) 콘솔에 기록한다.
 - 달·연도 이동은 lunar.js 안전 범위로 clamp: 일별 캘린더 1900~2100, 월운·토정·신점 연도 1901~2099 (`moveMonth`·`moveYear` — 밖으로 나가면 이동 자체를 막음).
 - 서비스 워커: 페이지(HTML)는 네트워크 우선, js·css는 `?v=N` 정확 일치 캐시. **설치 시 index.html에서 `?v=N` URL을 파싱해 워밍**하므로 sw.js에 자산 목록을 따로 관리하지 않는다. js·css 내용을 바꿨으면 `?v=N`을 올리고 `sw.js`의 `CACHE` 이름도 올린다.
+- **저장 공간 오리진 공유 주의 (2026-11-20 실제 버그 수정)**: github.io에서 luckylab(/luckylab/)과 같은 오리진을 공유한다 — localStorage·Cache Storage가 사이트 경로가 아니라 오리진 단위로 저장된다. 따라서 ① sw.js activate는 **`hanyeon-` 접두사 캐시만** 삭제해야 하고(luckylab의 `robunso-*` 캐시를 지우면 다른 사이트의 오프라인 기능이 깨짐) ② localStorage 키는 `hanyeon_` 접두사를 유지하고 ③ `caches.keys()`·localStorage 전체 순회/삭제 코드를 추가하지 않는다.
 - 사주 계산은 오직 `js/engine.js`를 통해서만 — 개별 파일에서 직접 lunar.js 호출 금지. 계산 파일(engine·western·selftest)은 UI 파일(app.js)의 함수를 쓰지 않는다(공용 유틸 `josa`·`randN`은 engine.js, `esc`만 app.js). Node에서도 돌아야 하므로 window 의존은 라이브러리 노출(Solar·Lunar·LunarYear·Astronomy)만.
 - 서울 태양시 30분 보정(동경 135° vs 127°) 규칙 유지.
 - 시간을 모르면 시주를 계산하지 않는다(12:00 가정 표시 없이 `시주: 모름`).
