@@ -8,7 +8,7 @@
 - 배포: https://chanyul0913-cyber.github.io/hanyeon/ (main push → GitHub Pages 자동 배포, 캐시 최대 10분)
 - 로컬: `python -m http.server 8890` → http://localhost:8890
 - 최신 커밋: `8e6f91f` 운세 상담 아코디언 UX + 시스템 강화(오류 카드·clamp·토정 격리)
-- 캐시 버전: sw CACHE `hanyeon-v46` / index `?v` — engine 36 · app 40 · daily 35 · western 37 · consult 8 · selftest 37 · style 9
+- 캐시 버전: sw CACHE `hanyeon-v47` / index `?v` — engine 36 · app 40 · daily 35 · western 37 · consult 9 · selftest 37 · style 9
 
 ## 현재 위치
 

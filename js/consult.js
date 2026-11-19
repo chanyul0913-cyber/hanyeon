@@ -178,7 +178,9 @@ function buildConsult(key, p, isMale, t, pd) {
 
   if (key === "stock") {
     title = "주식운세 — 투자·매매 컨디션";
-    const dw = dayWealth(p, t), iv = investSync(p, t);
+    const dw = dayWealth(p, t);
+    let iv = null;
+    try { iv = investSync(p, t); } catch (e) { rows.push({ t: "천문 계산 불가", s: 0, x: "astronomy.js 로드 실패 — 사주 재물 기운만 반영합니다" }); }
     // 사주 쪽 — 재성 성향과 손실 경계
     rows.push({ t: `오늘 재물 기운 ${dw.raw}점`, s: dw.raw, x: dw.tags.length ? "근거: " + dw.tags.join(" · ") : "특별한 재물 기운 없는 평범한 하루" });
     if (pd.sg === "편재") rows.push({ t: "투자 성향 — 편재(단타·변동성)", s: 2, x: "기회를 빠르게 잡는 기운. 변동성 매매엔 유리하지만 욕심은 두 배로 커진다" });
@@ -187,12 +189,14 @@ function buildConsult(key, p, isMale, t, pd) {
     if (pd.rel === "충") rows.push({ t: "일지 충(변동성)", s: -2, x: "시장·내 자리가 흔들리는 날 — 호가 실수·타이밍 놓침 조심" });
     if (pd.dayGZ.oh === p.yongsin) rows.push({ t: "용신일(판단력 회복)", s: 3, x: "부족한 기운이 채워져 냉정한 판단이 가능한 날" });
     // 서양 쪽 — 투자 행성 트랜짓
-    iv.harm.forEach(x => rows.push({ t: `${x.t.ko} 조화 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성이 내 ${x.n.ko}와 조화 — ${x.t.mean} 기운이 나를 돕는 날` }));
-    iv.tense.forEach(x => rows.push({ t: `${x.t.ko} 긴장 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성에 긴장각 — ${x.t.mean} 쪽에 변수가 끼어들기 쉬운 날` }));
-    // 판정 — 사주 재물×3 + 투자 행성 합산
-    const total = Math.round(dw.raw * 3 + iv.west);
-    const verdict = total >= 12 ? ["적극 매매 유리", "b-charge", "기운이 가장 잘 맞는 날. 계획한 매매라면 움직여도 좋습니다."]
-      : total >= 6 ? ["분할 접근 유리", "b-flow", "방향은 맞지만 확신은 중간. 한 번에 다 넣지 말고 나눠 접근하세요."]
+    if (iv) {
+      iv.harm.forEach(x => rows.push({ t: `${x.t.ko} 조화 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성이 내 ${x.n.ko}와 조화 — ${x.t.mean} 기운이 나를 돕는 날` }));
+      iv.tense.forEach(x => rows.push({ t: `${x.t.ko} 긴장 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성에 긴장각 — ${x.t.mean} 쪽에 변수가 끼어들기 쉬운 날` }));
+    }
+    // 판정 — 사주 재물×3 + 투자 행성 합산 (임계값은 1년 분포 시뮬레이션으로 보정: 적극 ~14%)
+    const total = Math.round(dw.raw * 3 + (iv ? iv.west : 0));
+    const verdict = total >= 16 ? ["적극 매매 유리", "b-charge", "기운이 가장 잘 맞는 날. 계획한 매매라면 움직여도 좋습니다."]
+      : total >= 8 ? ["분할 접근 유리", "b-flow", "방향은 맞지만 확신은 중간. 한 번에 다 넣지 말고 나눠 접근하세요."]
       : total >= 0 ? ["관망", "b-neutral", "특별한 신호 없는 날. 관찰하고 기회를 기다리는 게 이득입니다."]
       : total >= -6 ? ["추격·레버리지 조심", "b-tension", "실수가 늘어나는 기운. 포지션을 줄이고 손절 원칙을 지키세요."]
       : ["현금 지키기", "b-tension", "손실 기운이 우세한 날. 새 진입은 피하고 현금을 지키는 것이 최선."];
