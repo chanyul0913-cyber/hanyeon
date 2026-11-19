@@ -1,7 +1,7 @@
 "use strict";
 // 합연 — 명반 탭: 두 사람의 사주 8자 표(천간·지지·지장간·십신·12운성), 오행 분포, 대운, 별자리.
-function renderMyeongban() {
-  const mk = (p, gen) => {
+// 카드 빌더(myeongbanCardHTML)는 이별·재회 상담(consult.js)에서도 재사용한다.
+function myeongbanCardHTML(p, gen) {
     // 4주 → 3행(주이름/천간/지지) 표
     const names = p.pillars.map(x => x ? x.name : "시주");
     const gans = p.pillars.map(x => x ? `<div class="han" style="color:${OH_COLOR[GAN_OH[x.gan]]}">${GAN[x.gan]}</div><span class="oh-tag" style="background:${OH_COLOR[GAN_OH[x.gan]]}">${GAN_OH[x.gan]}</span><div style="font-size:11px;color:var(--sub)">${x.name === "일주" ? "일간" : shiShen(p.dmGan, x.gan)}</div>` : "<div style='color:var(--sub);font-size:12px'>시간 모름</div>");
@@ -17,8 +17,10 @@ function renderMyeongban() {
       <div style="margin:10px 0 4px;font-size:13px"><b class="today-ilju">일주 ${p.dmHanja}</b> · 일간 오행 <b style="color:${OH_COLOR[p.dmOh]}">${p.dmOh}</b> · 용신(근사) <b style="color:${OH_COLOR[p.yongsin]}">${p.yongsin}</b> · 별자리 ${p.zodiac.name}(${p.zodiac.el})</div>
       <div class="sec-t" style="margin-top:14px">오행 분포</div>${bars}
       <div class="sec-t" style="margin-top:14px">대운 <small>(10년 주기 — 현재 위치)</small></div>${dayun}</div>`;
-  };
-  $("myeongbanCards").innerHTML = mk(ST.p1, 1) + mk(ST.p2, 0); // 남자(1)·여자(0) — 양남음녀 대운 방향
+}
+
+function renderMyeongban(targetId) {
+  $(targetId || "myeongbanCards").innerHTML = myeongbanCardHTML(ST.p1, 1) + myeongbanCardHTML(ST.p2, 0); // 남자(1)·여자(0) — 양남음녀 대운 방향
 }
 
 function daYunHTML(p, gen) {

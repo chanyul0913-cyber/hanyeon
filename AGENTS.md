@@ -14,7 +14,7 @@
 | `js/vendor/astronomy.js` | astronomy-engine(MIT) — 서양 점성술 행성 위치 | 예 |
 | `js/engine.js` | 사주 계산·십신·지지 관계·12운성·신살·궁합 스코어·합궁 엔진 + 개인 일운(`personDay`)·세운(`getYearGZ`)·공용 유틸(`josa`·`randN`) (UI 없음) | |
 | `js/app.js` | 입력 폼·탭·localStorage·공유 링크 | |
-| `js/chart.js` | 명반 탭 렌더링 (사주 8자·오행·십신·대운) | |
+| `js/chart.js` | 명반 탭 렌더링 (사주 8자·오행·십신·대운). 카드 빌더 `myeongbanCardHTML(p, gen)`은 이별·재회 상담에서도 재사용 | |
 | `js/couple.js` | 궁합 분석 탭 (일주×일주 고정 궁합 + 별자리) | |
 | `js/daily.js` | 일별 궁합 탭 (월 캘린더·피크·합궁·일 상세 모달) | |
 | `js/western.js` | 서양 점성술: synastry + 트랜짓 일별 궁합(`dailyWestSync`) + 합궁·로또 판정(`lottoOf`·`westMoney`) + **투자 트랜짓**(`investSync` — 금성·목성·토성·명왕성), planetPositions 공용화·캐시. astronomy-engine 있을 때만 | |

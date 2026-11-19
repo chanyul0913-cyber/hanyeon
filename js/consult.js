@@ -174,6 +174,41 @@ function buildConsult(key, p, isMale, t, pd) {
     // 분석 — engine.js breakupAnalysis (고정 인연 + 60일 추이 + 90일 재회 스캔)
     const A = breakupAnalysis(ST.p1, ST.p2, ST.breakup.date);
     const lvCls = { recover: "b-charge", time: "b-neutral", end: "b-tension" }[A.level.k];
+    const brokeDate = new Date(Math.floor(ST.breakup.date / 10000), Math.floor(ST.breakup.date / 100) % 100 - 1, ST.breakup.date % 100, 12);
+    const gen = who === "m" ? 0 : 1;
+    // 🔮 신점 — 오방기 2깃발 (이별 분석 점수에 가중)
+    let shinjeomHtml = "";
+    if (typeof FLAGS !== "undefined" && typeof pickFlag === "function") {
+      const mood = Math.max(-2, Math.min(2, (A.final / 100) * 4 - 2));
+      const fr = i => (seedHash(`breakup-${ST.breakup.date}-${ST.breakup.who}-${ST.p1.name}-${ST.p2.name}-${i}-${ST.breakup.tarotRnd || 0}`) >>> 0) / 4294967296;
+      const sf1 = pickFlag(fr(1), mood), sf2 = pickFlag(fr(2), mood, sf1);
+      const fChip = fi => { const f = FLAGS[fi]; return `<span class="badge" style="border-color:${f[2]};background:${f[2]};color:${fi === 1 || fi === 2 ? "#222" : "#fff"};font-weight:700">${f[1]}</span>`; };
+      shinjeomHtml = `<div class="reason"><span class="rt">${fChip(sf1)} 상대의 현재 마음 — ${FLAGS[sf1][3]}</span><div class="rx">${esc(FLAGS[sf1][5])}</div></div>
+        <div class="reason"><span class="rt">${fChip(sf2)} 재회 가능성 — ${FLAGS[sf2][3]}</span><div class="rx">${esc(FLAGS[sf2][5])}</div></div>`;
+    }
+    // 🌠 점성술 — 헤어진 날의 하늘과 지금
+    let astroHtml = "";
+    if (window.Astronomy) {
+      const skyList = [{ key: "Moon", ko: "달", mean: "감정" }, ...INVEST_PLANETS];
+      const skyB = planetPositions(skyList, brokeDate), skyN = planetPositions(skyList, today());
+      const natalPos = key => natalOf(partner).find(x => x.key === key) || natalFullOf(partner).find(x => x.key === key);
+      const sigRow = sky => {
+        const hits = [];
+        for (const key of ["Saturn", "Pluto", "Moon", "Venus"]) {
+          const tO = sky.find(x => x.key === key), nO = natalPos(key);
+          if (!tO || !nO) continue;
+          const a = findTAspect(tO.elon, nO.elon);
+          if (a) hits.push({ tO, nO, a, dev: Math.abs(tDiff(tO, nO) - a.ang) });
+        }
+        hits.sort((x, y) => x.dev - y.dev);
+        return hits.slice(0, 2).map(x => `${x.tO.ko} ${x.a.ko} — ${x.a.mean} (각도 ${x.dev.toFixed(1)}°)`);
+      };
+      const posStr = sky => sky.map(x => `${x.ko} ${x.sign}`).join(" · ");
+      const bSig = sigRow(skyB), nSig = sigRow(skyN);
+      astroHtml = `<div class="sec-t">🌠 점성술 — 헤어진 날의 하늘과 지금</div>
+        <div class="reason"><b>${fmtYMD(ST.breakup.date)} 하늘</b> — ${posStr(skyB)}<div class="rx">${bSig.length ? esc(bSig.join(" / ")) : "뚜렷한 각 없음"}</div></div>
+        <div class="reason"><b>지금 하늘</b> — ${posStr(skyN)}<div class="rx">${nSig.length ? esc(nSig.join(" / ")) : "뚜렷한 각 없음"}</div></div>`;
+    }
     // 타로 5장 — 이별 스프레드 (같은 설정이면 같은 카드)
     const seed = (seedHash(`${ST.breakup.date}-${ST.p1.name}-${ST.p2.name}-${ST.breakup.who}`) ^ (ST.breakup.tarotRnd || 0)) >>> 0;
     let x = seed; const pool = TAROT.map((_, i) => i), pick = [];
@@ -203,8 +238,13 @@ function buildConsult(key, p, isMale, t, pd) {
           </table></div></div>
       <div class="sec-t">상대의 현재 마음 — 타로 5장 <small><button onclick="redrawBreakupTarot()" style="font-size:12px;padding:3px 8px">🔄 다시 뽑기</button></small></div>${cardHtml}
       <div class="reason"><b>타로 종합</b> — ${esc(tVerdict)}</div>
+      <div class="sec-t">🔮 신점 — 오방기 2깃발 <small><button onclick="redrawBreakupTarot()" style="font-size:12px;padding:3px 8px">🔄 다시 뽑기</button></small></div>
+      ${shinjeomHtml}
       <div class="sec-t">사주로 보는 상대의 마음</div>
       <div class="reason"><span class="rt">최근 7일</span><div class="rx">상대(${esc(partner.name)})가 나를 그리워하는 기운(관성·재성일)은 7일 중 <b>${missDays}일</b>. 그날의 기조는 '${toneWord(personDay(partner, today()).sg)}' 상태입니다.</div></div>
+      <div class="sec-t">👤 상대 명반 — 지금 어떤 시기인가</div>
+      <details style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">👤 ${esc(partner.name)} 명반 펼쳐 보기</summary><div style="margin-top:8px">${myeongbanCardHTML(partner, gen)}</div></details>
+      ${astroHtml}
       <div class="sec-t">연락·재회 유리한 날 — 앞 90일 TOP 5</div>
       ${A.top.length ? A.top.map(x2 => `<div class="reason"><span class="rt">${fmtYMD(x2.date)} <span class="rs" style="color:var(--good)">+${x2.score}</span></span><div class="rx">${esc(x2.why.map(y2 => y2.t).join(" · "))}</div></div>`).join("") : '<div class="reason">앞 90일 안에 뚜렷한 재회 신호일이 없습니다 — 무리한 접촉보다 기다림이 유리합니다.</div>'}
       <div class="sec-t">월별 재회 기운</div><div class="reason"><div class="rx">${A.months.length ? `남자의 재성운과 여자의 관성운이 동시에 드는 달: <b style="color:var(--gold2)">${A.months.join(" · ")}</b> — 연락·재회를 시도하기 좋은 달입니다.` : "향후 12개월 중 두 기운이 겹치는 달은 없습니다."}</div></div>
