@@ -259,15 +259,19 @@ function buildConsult(key, p, isMale, t, pd) {
       const yg = getYearGZ(yy), ss = shiShen(p.dmGan, yg.gan);
       const isLoveYear = loveSS.includes(ss);
       rows.push({ t: `${lbl} ${yg.hanja}년 — 천간 ${ss}`, s: isLoveYear ? 6 : 0, x: isLoveYear ? `${ssn}의 기운이 1년 내내 깔리는 해 — 인연이 열리기 쉬운 큰 흐름` : `${ss}의 해 — 이성보다 다른 일이 앞서는 흐름` });
+      // 배우자궁(일지) — 같은 해라도 사람마다 달라지는 부분
+      const yr = zaRel(JI_K[p.dmJi], JI_K[yg.ji]);
+      const yrS = yr === "육합" ? 4 : yr === "삼합" ? 3 : yr === "충" ? -3 : ["형", "원진"].includes(yr) ? -2 : 0;
+      rows.push({ t: `${lbl} 배우자궁 — ${yg.hanja.slice(1)}(년지)와 내 일지 ${p.dmHanja.slice(1)}${yr ? " " + yr : ""}`, s: yrS, x: yr === "육합" ? "배우자 자리가 그해와 하나로 묶임 — 마음 맞는 상대와 인연이 맺어지기 쉬운 해" : yr === "삼합" ? "배우자 자리에 힘이 모임 — 주변 소개·모임으로 인연이 이어지기 쉬운 해" : yr === "충" ? "배우자 자리가 흔들림 — 만남·이별의 변동이 크니 서두르지 말 것" : yr ? `배우자 자리와 ${yr} — 오해와 서운함을 조심할 해` : "배우자 자리와 특별한 관계 없음 — 큰 흐름(천간)을 따름" });
     }
     // 월별 12개월 — 이성월·도화월·애정 ★
     const months = [];
     for (let i = 0; i < 12; i++) {
       const dt = new Date(t.getFullYear(), t.getMonth() + i, 15, 12);
       const L = monthlyLuck(p, isMale, dt.getFullYear(), dt.getMonth() + 1);
-      months.push({ y: dt.getFullYear(), m: dt.getMonth() + 1, L, isJae: L.lTags.some(x => x.includes("이성")), isDowhwa: L.lTags.includes("도화월") });
+      months.push({ y: dt.getFullYear(), m: dt.getMonth() + 1, L, isJae: L.lTags.some(x => x.includes("이성")), isDowhwa: L.lTags.includes("도화월"), spouse: L.lTags.filter(x => /일지|천간합/.test(x)) });
     }
-    const loveScore = m2 => m2.L.love + (m2.isJae ? 2 : 0) + (m2.isDowhwa ? 1 : 0);
+    const loveScore = m2 => m2.L.lRaw * 10 + m2.L.love; // 원점수 우선 — ★가 같아도 근거 많은 달이 앞
     const best = [...months].sort((a, b) => loveScore(b) - loveScore(a)).slice(0, 3);
     // 90일 일별 스캔 — 이성 기운일(정재·정관=진지한 인연 / 편재·편관=새로운 만남) + 도화 + 천을귀인
     const days = [];
@@ -275,11 +279,13 @@ function buildConsult(key, p, isMale, t, pd) {
       const dt = addDays(t, i), pd2 = personDay(p, dt);
       const isJaeDay = pd2.dayGZ.oh === wantOh;
       const dow = pd2.ss.find(x => x.name === "도화살"), gui = pd2.ss.find(x => x.name === "천을귀인");
-      if (!isJaeDay && !dow && !gui) continue;
+      const sp = pd2.rel === "육합";
+      if (!isJaeDay && !dow && !gui && !sp) continue;
       const kind = [];
       if (isJaeDay) kind.push(shiShen(p.dmGan, pd2.dayGZ.gan) === (isMale ? "정재" : "정관") ? "진지한 인연의 기운" : "새로운 만남의 기운");
       if (dow) kind.push("매력 상승(도화)");
       if (gui) kind.push("귀인의 소개");
+      if (sp) kind.push("배우자궁 육합(마음이 열림)");
       days.push({ date: pd2.date, score: pd2.score + (isJaeDay ? 6 : 0) + (dow ? 4 : 0) + (gui ? 3 : 0), kind: kind.join(" + ") });
     }
     days.sort((a, b) => b.score - a.score);
@@ -290,9 +296,10 @@ function buildConsult(key, p, isMale, t, pd) {
     const advice = `가장 강한 시기는 ${best.map(m2 => m2.y + "-" + String(m2.m).padStart(2, "0") + "월").join(" · ")} — 이 시기 앞뒤로 소개·모임에 응하는 것이 유리합니다. 귀인의 소개가 뜨는 날(천을귀인)에는 지인의 소개를, 도화가 뜨는 날에는 외출과 자기 표현이 인연의 문을 엽니다.`;
     return `<div class="card gold"><div class="sec-t">${title} <small>${esc(p.name)} · ${fmtYMD(t)}부터 90일</small></div>
       <div class="reason"><span class="rt">이성 기운의 열쇠 — ${wantOh} 오행</span><div class="rx">${isMale ? "남자에게 여자는 재성" : "여자에게 남자는 관성"} — ${wantOh} 기운이 해(년)·달·날에 들어올 때 인연이 열립니다. (${esc(p.name)}의 일주 ${p.dmHanja})</div></div>
+      ${(() => { const q = isMale ? ST.p2 : ST.p1, qOh = isMale ? q.gwanOh : q.jaeOh; return qOh === wantOh ? `<div class="reason"><span class="rt">💞 ${esc(q.name)}도 같은 ${wantOh} 오행이 열쇠</span><div class="rx">두 사람이 서로에게 이성 기운(${isMale ? "남자의 재성 = 여자의 관성" : "여자의 관성 = 남자의 재성"})이라 해·달의 큰 흐름은 비슷하게 나옵니다. 사람마다 다른 부분은 <b>배우자궁(일지 ${p.dmHanja.slice(1)})</b>의 합·충, 도화, 천을귀인입니다.</div></div>` : ""; })()}
       ${rows.map(x => scoreRow(x)).join("")}
       <div class="sec-t">월별 이성 기운 — 12개월</div>
-      ${months.map(m2 => `<div class="reason"><span class="rt">${m2.y}-${String(m2.m).padStart(2, "0")}월 <span class="rs" style="color:var(--gold2)">애정 ★${m2.L.love}</span></span><div class="rx">${m2.isJae ? "<b>🌸 이성 인연의 달</b> · " : ""}${m2.isDowhwa ? "<b>도화월(매력)</b> · " : ""}애정 기운 ${m2.L.love >= 4 ? "좋음" : m2.L.love >= 3 ? "무난" : "차분"}</div></div>`).join("")}
+      ${months.map(m2 => `<div class="reason"><span class="rt">${m2.y}-${String(m2.m).padStart(2, "0")}월 <span class="rs" style="color:var(--gold2)">애정 ★${m2.L.love}</span></span><div class="rx">${m2.isJae ? "<b>🌸 이성 인연의 달</b> · " : ""}${m2.isDowhwa ? "<b>도화월(매력)</b> · " : ""}${m2.spouse.map(x => `<b>${{ "일지 육합": "배우자궁 육합", "일지 삼합": "배우자궁 삼합", "천간합": "일간 천간합(끌림)", "일지 충": "배우자궁 충(변동)" }[x] || x}</b> · `).join("")}애정 기운 ${m2.L.love >= 4 ? "좋음" : m2.L.love >= 3 ? "무난" : "차분"}</div></div>`).join("")}
       <div class="sec-t">🌸 새 만남에 유리한 날 — TOP 10</div>
       ${top.map(x2 => `<div class="reason"><span class="rt">${fmtYMD(x2.date)} <span class="rs" style="color:var(--good)">+${x2.score}</span></span><div class="rx">${esc(x2.kind)}</div></div>`).join("") || '<div class="reason">뚜렷한 신호일 없음 — 기운이 고르게 분포합니다.</div>'}
       <div class="reason"><b>기운이 몰리는 달</b> — ${byMonthStr || "고르게 분포"}</div>

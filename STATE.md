@@ -7,8 +7,8 @@
 
 - 배포: https://chanyul0913-cyber.github.io/hanyeon/ (main push → GitHub Pages 자동 배포, 캐시 최대 10분)
 - 로컬: `python -m http.server 8890` → http://localhost:8890
-- 최신 커밋: `git log -1` 참고 — `1e522b0`(새 인연 시기 메뉴) 다음의 조사 수정 커밋
-- 캐시 버전: sw CACHE `hanyeon-v54` / index `?v` — engine 37 · app 40 · daily 35 · western 38 · consult 19 · selftest 38 · style 9
+- 최신 커밋: `git log -1` 참고 — 새 인연 시기 사람별 차이 보완(배우자궁) 커밋
+- 캐시 버전: sw CACHE `hanyeon-v55` / index `?v` — engine 37 · app 40 · daily 35 · western 38 · consult 20 · selftest 38 · style 9
 
 ## 현재 위치
 
