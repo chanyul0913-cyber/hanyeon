@@ -3,16 +3,16 @@
 > 이 문서는 "지금 프로젝트가 어디에 있는지"를 담는 살아있는 문서다. **세션을 마칠 때마다 최신으로 갱신**한다.
 > 규칙·파일 구조는 `AGENTS.md`, 세션별 작업 이력은 `작업기록.md`를 본다.
 
-최종 갱신: 2026-11-20 (ZCode)
+최종 갱신: 2026-11-20 (Claude Code)
 
 - 배포: https://chanyul0913-cyber.github.io/hanyeon/ (main push → GitHub Pages 자동 배포, 캐시 최대 10분)
 - 로컬: `python -m http.server 8890` → http://localhost:8890
-- 최신 커밋: `8e6f91f` 운세 상담 아코디언 UX + 시스템 강화(오류 카드·clamp·토정 격리)
-- 캐시 버전: sw CACHE `hanyeon-v53` / index `?v` — engine 37 · app 40 · daily 35 · western 37 · consult 18 · selftest 37 · style 9
+- 최신 커밋: `git log -1` 참고 — `1e522b0`(새 인연 시기 메뉴) 다음의 조사 수정 커밋
+- 캐시 버전: sw CACHE `hanyeon-v54` / index `?v` — engine 37 · app 40 · daily 35 · western 38 · consult 19 · selftest 38 · style 9
 
 ## 현재 위치
 
-- 탭 10개 모두 안정: 오늘 / 운세 상담(아코디언 UX) / 일별 궁합(사주+서양합궁+로또 통합 캘린더) / 재물·애정운 / 토정비결 / 신점 / 타로 / 명반 / 궁합 분석 / 서양 점성술
+- 탭 10개 모두 안정: 오늘 / 운세 상담(아코디언 UX, 13메뉴 — 이별·재회·새 인연 시기·주식 포함) / 일별 궁합(사주+서양합궁+로또 통합 캘린더) / 재물·애정운 / 토정비결 / 신점 / 타로 / 명반 / 궁합 분석 / 서양 점성술
 - 검증 상태: Node `selfTest()` ok:true · 브라우저 10탭 오류 0 · 배포본 반영 확인 완료
 - 사용자 실제 프로필(임천봉·황은정)은 각 브라우저 localStorage에 있음(저장소에 없음 — 개인정보 미포함)
 

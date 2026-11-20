@@ -345,7 +345,7 @@ function buildConsult(key, p, isMale, t, pd) {
     if (pd.dayGZ.oh === p.yongsin) rows.push({ t: "용신일(판단력 회복)", s: 3, x: "부족한 기운이 채워져 냉정한 판단이 가능한 날" });
     // 서양 쪽 — 투자 행성 트랜짓
     if (iv) {
-      iv.harm.forEach(x => rows.push({ t: `${x.t.ko} 조화 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성이 내 ${x.n.ko}와 조화 — ${x.t.mean} 기운이 나를 돕는 날` }));
+      iv.harm.forEach(x => rows.push({ t: `${x.t.ko} 조화 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성이 내 ${josa(x.n.ko, "과", "와")} 조화 — ${x.t.mean} 기운이 나를 돕는 날` }));
       iv.tense.forEach(x => rows.push({ t: `${x.t.ko} 긴장 (${x.a.ko} · 내 ${x.n.ko})`, s: Math.round(x.c * 10) / 10, x: `${x.t.mean} 행성에 긴장각 — ${x.t.mean} 쪽에 변수가 끼어들기 쉬운 날` }));
     }
     // 판정 — 사주 재물×3 + 투자 행성 합산 (임계값은 1년 분포 시뮬레이션으로 보정: 적극 ~14%)

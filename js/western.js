@@ -117,7 +117,7 @@ function dailyWestSync(p1, p2, date) {
     if (t.key === "Moon") moon = t;
     if (h1 > 0 && h2 > 0) {
       syncList.push(t.ko); score += 6;
-      reasons.push({ t: `${t.ko} — 두 사람 조화`, s: +6, x: `오늘의 ${t.ko}이(가) ${josa(p1.name, "과", "와")} ${p2.name}의 출생 행성에 동시에 조화각 — 두 사람이 함께 잘 풀리는 날` });
+      reasons.push({ t: `${t.ko} — 두 사람 조화`, s: +6, x: `오늘의 ${josa(t.ko, "이", "가")} ${josa(p1.name, "과", "와")} ${p2.name}의 출생 행성에 동시에 조화각 — 두 사람이 함께 잘 풀리는 날` });
       if (t.key === "Venus") { score += 6; reasons.push({ t: "사랑의 조화 (금성)", s: +6, x: "금성(애정)이 두 사람 모두와 조화 — 데이트·고백·손편지 등 애정 표현에 최적인 날" }); }
     }
     hard1All += hard1; hard2All += hard2;
