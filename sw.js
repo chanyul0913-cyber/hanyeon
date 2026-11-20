@@ -2,7 +2,7 @@
 // 설치 시 index.html을 읽어 그때의 js/*.js?v=N·style.css?v=N "정확한 버전 URL"을 워밍한다.
 // (정적 목록에 버전 없는 URL을 넣으면 ?v=N 요청과 매칭되지 않아 설치 캐시가 무용지물이 된다)
 "use strict";
-const CACHE = "hanyeon-v52";
+const CACHE = "hanyeon-v53";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
