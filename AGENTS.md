@@ -24,6 +24,7 @@
 | `js/shinjeom.js` | 신점 탭 (오방기 뽑기 — 전체운 2깃발 + 월별 12깃발, 월운에 따라 가중) | |
 | `js/consult.js` | 운세 상담 탭 (사람·날짜 선택 → 종합·심리·애정·연애·타로·재물·**주식**·건강·직업·주간·년간 11메뉴 아코디언 — engine.js `personDay` 등으로 계산, 날짜 clamp 1900~2100) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
+| `tests/property-check.js` | 계산 불변식 전수 검증(Node 전용) — 지장간 본기·신살 표 완전성·60갑자 3년 연속·12운성 유니크·생극 일관·결정론·스캔 일치. `node tests/property-check.js` | |
 
 ## 규칙
 
