@@ -159,7 +159,7 @@ function buildConsult(key, p, isMale, t, pd) {
     const who = isMale ? "m" : "f"; // buildConsult 스코프 — isMale에서 파생
     // 상태 초기화 — 헤어진 날짜·청한 사람이 있으면 바로 분석
     if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 };
-    const partner = who === "m" ? ST.p2 : ST.p1, viewer = who === "m" ? ST.p1 : ST.p2;
+    const partner = who === "m" ? ST.p2 : ST.p1;
     const viewerWantOh = who === "m" ? ST.p1.jaeOh : ST.p2.gwanOh, partnerWantOh = who === "m" ? ST.p2.gwanOh : ST.p1.jaeOh;
     const ready = !!(ST.breakup.date && ST.breakup.who);
     const whoBtn = (k, label) => `<button onclick="setBreakupWho('${k}')" style="${ST.breakup.who === k ? "border-color:var(--gold);color:var(--gold2);font-weight:700" : ""}">${label}</button>`;
@@ -175,17 +175,7 @@ function buildConsult(key, p, isMale, t, pd) {
     const A = breakupAnalysis(ST.p1, ST.p2, ST.breakup.date);
     const lvCls = { recover: "b-charge", time: "b-neutral", end: "b-tension" }[A.level.k];
     const brokeDate = new Date(Math.floor(ST.breakup.date / 10000), Math.floor(ST.breakup.date / 100) % 100 - 1, ST.breakup.date % 100, 12);
-    const gen = who === "m" ? 0 : 1;
     // 🔮 신점 — 오방기 2깃발 (이별 분석 점수에 가중)
-    let shinjeomHtml = "";
-    if (typeof FLAGS !== "undefined" && typeof pickFlag === "function") {
-      const mood = Math.max(-2, Math.min(2, (A.final / 100) * 4 - 2));
-      const fr = i => (seedHash(`breakup-${ST.breakup.date}-${ST.breakup.who}-${ST.p1.name}-${ST.p2.name}-${i}-${ST.breakup.tarotRnd || 0}`) >>> 0) / 4294967296;
-      const sf1 = pickFlag(fr(1), mood), sf2 = pickFlag(fr(2), mood, sf1);
-      const fChip = fi => { const f = FLAGS[fi]; return `<span class="badge" style="border-color:${f[2]};background:${f[2]};color:${fi === 1 || fi === 2 ? "#222" : "#fff"};font-weight:700">${f[1]}</span>`; };
-      shinjeomHtml = `<div class="reason"><span class="rt">${fChip(sf1)} 상대의 현재 마음 — ${FLAGS[sf1][3]}</span><div class="rx">${esc(FLAGS[sf1][5])}</div></div>
-        <div class="reason"><span class="rt">${fChip(sf2)} 재회 가능성 — ${FLAGS[sf2][3]}</span><div class="rx">${esc(FLAGS[sf2][5])}</div></div>`;
-    }
     // 🌠 점성술 — 헤어진 날의 하늘과 지금
     let astroHtml = "";
     if (window.Astronomy) {
@@ -218,9 +208,17 @@ function buildConsult(key, p, isMale, t, pd) {
     const cardHtml = cards.map((c, k) => `<div class="part"><div class="pt"><span>${BPOS[k]} <span class="pv">${c.t[0]}. ${c.t[1]} · ${c.rev ? "역방향" : "정방향"}</span></span><span class="ps" style="color:${c.tone > 0 ? "var(--good)" : c.tone < 0 ? "var(--bad)" : "var(--sub)"}">${c.tone > 0 ? "긍정" : c.tone < 0 ? "주의" : "복합"}</span></div><div class="px" style="font-size:20px;text-align:center;margin:4px 0;${c.rev ? "transform:rotate(180deg)" : ""}">${c.t[3]}</div><div class="px">${esc(c.text)}</div></div>`).join("");
     const tSum = cards.reduce((s, c) => s + c.tone, 0) + cards[1].tone;
     const tVerdict = tSum >= 4 ? "카드는 아직 마음이 완전히 식지 않았다고 봅니다. 연결고리를 끊지 말고 천천히." : tSum >= 1 ? "마음은 복잡하지만 문이 닫힌 상태는 아닙니다. 서두르지 않고 신호를 보세요." : tSum >= -2 ? "정리 중인 마음입니다. 지금은 부재중 신호 — 기다림과 자기 회복이 병행되어야 합니다." : "카드도 마음이 멀어졌다고 봅니다. 붙잡기보다 스스로를 돌보는 시간이 필요합니다.";
-    // 상대의 최근 7일 — 상대가 나를 그리워하는 기운(상대의 관성/재성일) 며칠인지
-    let missDays = 0;
-    for (let i = 1; i <= 7; i++) if (getDayGZ(addDays(today(), i)).oh === partnerWantOh) missDays++;
+    // 사주로 보는 상대의 마음 — 그리움 기운(상대의 관성·재성일)을 지난 7일과 앞 7일로 나눠 센다.
+    // 7일 연속 일간에는 오행 5개 중 하나가 아예 안 들어올 수 있으므로 0일은 정상값이다.
+    // (표기 버그 수정: 예전엔 "최근 7일"이라 쓰고 미래 7일을 세고 있었다)
+    let pMiss = 0, pMissNext = 0, vMiss = 0, vMissNext = 0;
+    for (let i = 0; i < 7; i++) {
+      const dPast = getDayGZ(addDays(today(), -i)), dNext = getDayGZ(addDays(today(), i + 1));
+      if (dPast.oh === partnerWantOh) pMiss++;
+      if (dNext.oh === partnerWantOh) pMissNext++;
+      if (dPast.oh === viewerWantOh) vMiss++;
+      if (dNext.oh === viewerWantOh) vMissNext++;
+    }
     const lvAdvice = {
       recover: "연결고리가 살아 있습니다. 긴 대화보다 짧고 따뜻한 연락부터 — 아래 '기운이 맞는 날'을 골라 보세요.",
       time: "서로의 기운이 정리 중입니다. 연락은 미루고, 아래 기운이 맞는 날에 딱 한 번, 짧고 진솔하게.",
@@ -238,12 +236,9 @@ function buildConsult(key, p, isMale, t, pd) {
           </table></div></div>
       <div class="sec-t">상대의 현재 마음 — 타로 5장 <small><button onclick="redrawBreakupTarot()" style="font-size:12px;padding:3px 8px">🔄 다시 뽑기</button></small></div>${cardHtml}
       <div class="reason"><b>타로 종합</b> — ${esc(tVerdict)}</div>
-      <div class="sec-t">🔮 신점 — 오방기 2깃발 <small><button onclick="redrawBreakupTarot()" style="font-size:12px;padding:3px 8px">🔄 다시 뽑기</button></small></div>
-      ${shinjeomHtml}
       <div class="sec-t">사주로 보는 상대의 마음</div>
-      <div class="reason"><span class="rt">최근 7일</span><div class="rx">상대(${esc(partner.name)})가 나를 그리워하는 기운(관성·재성일)은 7일 중 <b>${missDays}일</b>. 그날의 기조는 '${toneWord(personDay(partner, today()).sg)}' 상태입니다.</div></div>
-      <div class="sec-t">👤 상대 명반 — 지금 어떤 시기인가</div>
-      <details style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">👤 ${esc(partner.name)} 명반 펼쳐 보기</summary><div style="margin-top:8px">${myeongbanCardHTML(partner, gen)}</div></details>
+      <div class="reason"><span class="rt">상대(${esc(partner.name)})의 그리움 — ${partnerWantOh} 기운</span><div class="rx">지난 7일 중 <b>${pMiss}일</b> · 앞 7일 중 <b>${pMissNext}일</b>. 그날의 기조는 '${toneWord(personDay(partner, today()).sg)}' 상태입니다. (일주일에 오행 하나가 아예 안 들어올 수 있어 0일도 정상입니다)</div></div>
+      <div class="reason"><span class="rt">나의 그리움 — ${viewerWantOh} 기운</span><div class="rx">지난 7일 중 <b>${vMiss}일</b> · 앞 7일 중 <b>${vMissNext}일</b>. 내 쪽 그리움 기운이 먼저 오면, 먼저 짧게 연락하기 좋은 타이밍입니다.</div></div>
       ${astroHtml}
       <div class="sec-t">연락·재회 유리한 날 — 앞 90일 TOP 5</div>
       ${A.top.length ? A.top.map(x2 => `<div class="reason"><span class="rt">${fmtYMD(x2.date)} <span class="rs" style="color:var(--good)">+${x2.score}</span></span><div class="rx">${esc(x2.why.map(y2 => y2.t).join(" · "))}</div></div>`).join("") : '<div class="reason">앞 90일 안에 뚜렷한 재회 신호일이 없습니다 — 무리한 접촉보다 기다림이 유리합니다.</div>'}
