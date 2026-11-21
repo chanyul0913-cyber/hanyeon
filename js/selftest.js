@@ -11,6 +11,11 @@ async function selfTest() {
   const d1 = new Date(2026, 10, 15, 12);
   eq(getDayGZ(d1).hanja, getDayGZ(addDays(d1, 60)).hanja, "일진60주기");
   eq(getDayGZ(addDays(d1, 7)).hanja.length, 2, "일진형식");
+  // 1-1) 산술 일진 = lunar.js 일진 — 1900~2100에서 97일 간격 표본 대조(경계 포함)
+  for (let t = Date.UTC(1900, 0, 1); t <= Date.UTC(2100, 11, 31); t += 97 * 864e5) {
+    const u = new Date(t), dt = new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), 12);
+    eq(getDayGZ(dt).hanja, Solar.fromDate(dt).getLunar().getDayInGanZhi(), "산술일진" + ymdOf(dt));
+  }
 
   // 2) 년주·월주 — 2026년은 병오년, 6월 초(입하~망종)는 癸巳月
   const ec = Solar.fromYmdHms(2026, 6, 1, 12, 0, 0).getLunar().getEightChar();

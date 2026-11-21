@@ -20,6 +20,7 @@ function planetPositions(list, date) { // 행성 목록의 황경 위치(별자�
   return list.map(x => {
     let elon;
     if (x.key === "Moon") elon = A.EclipticGeoMoon(d).lon;
+    else if (x.key === "Sun") elon = A.SunPosition(d).elon; // GeoVector+Ecliptic와 같은 값, 3배 빠름
     else elon = A.Ecliptic(A.GeoVector(A.Body[x.key], d, true)).elon;
     const z = ZODIAC[Math.floor(((elon % 360) + 360) % 360 / 30)];
     return { ...x, elon, sign: z.name, el: z.el }; // el = 별자리 원소(불·흙·바람·물)

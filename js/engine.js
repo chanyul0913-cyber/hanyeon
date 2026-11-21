@@ -122,12 +122,12 @@ function calcPerson(p) {
   };
 }
 
-// 그날의 일주(일진) — 자정 경계 기준
+// 그날의 일주(일진) — 자정 경계 기준. 일진은 끊김 없는 60일 주기라 산수로 계산(1970-01-01 = 辛巳, 60갑자 17번)
+// lunar.js 경유보다 수십 배 빠름(일별·1년 스캔의 병목이었음). 1900~2100 전 구간 lunar.js와 일치 — selftest가 표본 대조
 function getDayGZ(date) {
-  const s = Solar.fromDate(new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12));
-  const gz = s.getLunar().getDayInGanZhi();
-  const gan = GAN.indexOf(gz[0]), ji = JI.indexOf(gz[1]);
-  return { gan, ji, hanja: gz, oh: GAN_OH[gan], jiOh: JI_OH[ji], ilju: GAN_K[gan] + JI_K[ji] };
+  const n = Math.round(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 864e5);
+  const i = ((n + 17) % 60 + 60) % 60, gan = i % 10, ji = i % 12;
+  return { gan, ji, hanja: GAN[gan] + JI[ji], oh: GAN_OH[gan], jiOh: JI_OH[ji], ilju: GAN_K[gan] + JI_K[ji] };
 }
 
 // ---------- 일별 속궁합·합궁 ----------
@@ -224,9 +224,9 @@ function coupleFixed(p1, p2) {
   } else if (OH_GEN[fOh] === mOh) {
     score += 15; parts.push({ t: "천간 관계 — 여자가 生", v: `${fOh} → ${mOh}`, s: 15, x: `여자의 ${fOh} 일간이 남자의 ${mOh} 일간을 生하는 구조. 여자가 남자를 아끼고 챙겨 주는 관계입니다.` });
   } else if (OH_KEUK[mOh] === fOh) {
-    score -= 6; parts.push({ t: "천간 관계 — 남자가 극", v: `${mOh} ⊣ ${fOh}`, s: -6, x: `남자의 ${mOh} 기운이 여자의 ${fOh}를 누르는 구조. 주도권은 남자가 잡지만 강압적으로 흐르지 않게 주의하세요.` });
+    score -= 6; parts.push({ t: "천간 관계 — 남자가 극", v: `${mOh} ⊣ ${fOh}`, s: -6, x: `남자의 ${mOh} 기운이 여자의 ${josa(fOh, "을", "를")} 누르는 구조. 주도권은 남자가 잡지만 강압적으로 흐르지 않게 주의하세요.` });
   } else {
-    score -= 10; parts.push({ t: "천간 관계 — 여자가 극", v: `${fOh} ⊣ ${mOh}`, s: -10, x: `여자의 ${fOh} 기운이 남자의 ${mOh}를 누르는 구조. 서로 긴장이 생기기 쉬우니 대화 방식을 부드럽게.` });
+    score -= 10; parts.push({ t: "천간 관계 — 여자가 극", v: `${fOh} ⊣ ${mOh}`, s: -10, x: `여자의 ${fOh} 기운이 남자의 ${josa(mOh, "을", "를")} 누르는 구조. 서로 긴장이 생기기 쉬우니 대화 방식을 부드럽게.` });
   }
 
   // 일지(몸·삶터) 관계

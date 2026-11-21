@@ -121,12 +121,12 @@ function buildConsult(key, p, isMale, t, pd) {
   if (key === "mind") {
     title = "심리운세 — 마음과 감정의 흐름";
     rows.push({ t: `내면의 기조: ${pd.sg}`, s: SS_TONE[pd.sg], x: SS_DAY[pd.sg][2] });
-    rows.push({ t: `겉으로 드러나는 태도: ${pd.bg}`, s: SS_TONE[pd.bg], x: `지지 본기까지 더하면 오늘의 나는 '${toneWord(pd.sg)}'와 '${toneWord(pd.bg)}'가 섞인 상태` });
+    rows.push({ t: `겉으로 드러나는 태도: ${pd.bg}`, s: SS_TONE[pd.bg], x: `지지 본기까지 더하면 오늘의 나는 '${toneWord(pd.sg)}'${josa(toneWord(pd.sg), "과", "와").slice(-1)} '${toneWord(pd.bg)}'${josa(toneWord(pd.bg), "이", "가").slice(-1)} 섞인 상태` });
     if (w && w.moon) rows.push({ t: `달 ☾ ${w.moon.sign}(${w.moon.el})`, s: 0, x: MOON_TONE[w.moon.el] || "오늘의 달이 감정의 배경을 만듭니다." });
     if (pd.inflow === 1) rows.push({ t: "받는 기운", s: 4, x: "바깥에서 나를 生해주는 날 — 사람·상황이 나를 도와주는 쪽" });
     else if (pd.inflow === 2) rows.push({ t: "주는 기운", s: 0, x: "내 기운을 밖으로 생해주는 날 — 표현·소모가 먼저 오는 하루" });
     else if (pd.inflow === -1) rows.push({ t: "눌리는 기운", s: -4, x: "바깥이 나를 극 — 압박감을 느끼기 쉬우니 방어적으로 대응" });
-    return wrap(title, pd, rows, "마음은 말보다 먼저 흔들립니다. 오늘의 기조('" + toneWord(pd.sg) + "')를 알고 있으면 감정에 쓸리지 않고 선택할 수 있습니다.");
+    return wrap(title, pd, rows, "마음은 말보다 먼저 흔들립니다. 오늘의 기조('" + toneWord(pd.sg) + "')" + josa(toneWord(pd.sg), "을", "를").slice(-1) + " 알고 있으면 감정에 쓸리지 않고 선택할 수 있습니다.");
   }
 
   if (key === "love") {

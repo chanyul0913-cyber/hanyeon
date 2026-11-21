@@ -13,10 +13,35 @@ function renderCouple() {
         <div style="margin-top:6px;color:var(--sub);font-size:13.5px">두 사람의 마음(일간)과 삶터(일지)의 관계를 사주 규칙(천간합·지지 육합/삼합/충/형/원진·오행 생극·도화·12운성)으로 종합한 점수입니다. 이 점수는 고정 궁합이며, 일별 변화는 <b>일별 궁합</b> 탭에서 봅니다.</div>
       </div></div></div>`;
 
+  $("coupleParts").innerHTML = `<div class="sec-t">궁합 근거 상세</div>` +
+    c.parts.map(x => `<div class="part"><div class="pt"><span>${esc(x.t)}<span class="pv">${esc(x.v)}</span></span><span class="ps" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span></div><div class="px">${esc(x.x)}</div></div>`).join("");
+
+  // 오행 나란히 비교
+  const maxC = Math.max(...OHS.flatMap(o => [p1.cnt[o], p2.cnt[o]]), 1);
+  const rows = OHS.map(o => `<div class="oh-bar-row"><span class="lb">${o}</span>
+      <div class="oh-bar"><i style="width:${(p1.cnt[o] / maxC * 100).toFixed(0)}%;background:${OH_COLOR[o]};opacity:.9"></i></div><span class="ct">${p1.cnt[o]}</span></div>
+    <div class="oh-bar-row" style="margin-left:34px"><div class="oh-bar"><i style="width:${(p2.cnt[o] / maxC * 100).toFixed(0)}%;background:${OH_COLOR[o]};opacity:.55"></i></div><span class="ct">${p2.cnt[o]}</span></div>`).join("");
+  const lack1 = OHS.reduce((a, b) => p1.cnt[a] <= p1.cnt[b] ? a : b), lack2 = OHS.reduce((a, b) => p2.cnt[a] <= p2.cnt[b] ? a : b);
+  $("coupleOh").innerHTML = `<div class="card"><div class="sec-t">오행 균형 비교 <small>— 위: ${esc(p1.name)}, 아래(연한 바): ${esc(p2.name)}</small></div>${rows}
+    <div style="margin-top:10px;font-size:13px;color:var(--sub)">
+      ${esc(josa(p1.name, "이", "가"))} 부족한 오행 <b style="color:${OH_COLOR[lack1]}">${lack1}</b> / ${esc(josa(p2.name, "이", "가"))} 부족한 오행 <b style="color:${OH_COLOR[lack2]}">${lack2}</b> —
+      서로의 다수 오행이 상대의 부족 오행이면 채워주는 궁합입니다.</div>
+</div>`;
+
   // 피크·합궁 — 향후 1년 통계 + 피크이면서 합궁인 날
   const hasW = !!window.Astronomy, t0 = today();
   // 1년치 계산은 무거워서 같은 두 사람·같은 날이면 재사용
   if (!(YEAR_CACHE && YEAR_CACHE.p1 === p1 && YEAR_CACHE.p2 === p2 && YEAR_CACHE.d === ymdOf(t0))) {
+    // 행성 1년치(~0.25초, 휴대폰은 그 몇 배)는 화면을 먼저 그린 뒤 계산 — 탭이 멈춘 듯 보이지 않게
+    if (!renderCouple.later) {
+      $("couplePeak").innerHTML = `<div class="card"><div class="sec-t">피크 · 합궁 <small>(향후 1년)</small></div><div class="reason">향후 1년을 계산하는 중입니다…</div></div>`;
+      renderCouple.later = setTimeout(() => {
+        try { if (ST.tab === "couple") renderCouple(); }
+        catch (e) { console.error(e); $("couplePeak").innerHTML = `<div class="card"><div class="reason">⚠ 1년 계산 중 문제가 생겼습니다: ${esc(e && e.message || e)}</div></div>`; }
+        finally { renderCouple.later = null; }
+      }, 30);
+      return;
+    }
     const days = [];
     for (let i = 0; i < 365; i++) {
       const dt = addDays(t0, i), r = dailySync(p1, p2, dt), w = hasW ? dailyWestSync(p1, p2, dt) : null;
@@ -33,19 +58,4 @@ function renderCouple() {
     <table class="mini-tbl">${stat("⭐ 사주 피크", cnt(o => o.sPeak))}${stat("✿ 합궁", cnt(o => o.sHap))}${hasW ? stat("⭐ 서양 피크", cnt(o => o.wPeak)) + stat("✿ 서양합궁", cnt(o => o.wHap)) + stat("✿ 합궁·서양합궁 둘 다", cnt(o => o.sHap && o.wHap)) : ""}${stat("⭐✿ 피크이면서 합궁", cnt(o => o.sPeak && (o.sHap || o.wHap)))}</table>
     <div class="sec-t" style="margin-top:12px">${best.length ? "피크이면서 합궁인 날" : "합궁·서양합궁 둘 다인 날"}</div>
     ${fallback.length ? fallback.map(o => `<div class="rank-row" onclick="openDayModal(${o.r.date})"><span class="today-ilju">${fmtYMD(o.r.date)}</span><span class="today-date">${o.r.dayGZ.hanja}</span><span style="flex:1">${peakBadge(o.sPeak, o.sHap, o.wHap)}</span><b style="font-family:var(--serif);font-size:16px">${o.r.score}</b></div>`).join("") : '<div class="flow-item"><span class="fx">향후 1년 안에 해당하는 날이 없습니다.</span></div>'}</div>`;
-
-  $("coupleParts").innerHTML = `<div class="sec-t">궁합 근거 상세</div>` +
-    c.parts.map(x => `<div class="part"><div class="pt"><span>${esc(x.t)}<span class="pv">${esc(x.v)}</span></span><span class="ps" style="color:${x.s >= 0 ? "var(--good)" : "var(--bad)"}">${x.s > 0 ? "+" : ""}${x.s}</span></div><div class="px">${esc(x.x)}</div></div>`).join("");
-
-  // 오행 나란히 비교
-  const maxC = Math.max(...OHS.flatMap(o => [p1.cnt[o], p2.cnt[o]]), 1);
-  const rows = OHS.map(o => `<div class="oh-bar-row"><span class="lb">${o}</span>
-      <div class="oh-bar"><i style="width:${(p1.cnt[o] / maxC * 100).toFixed(0)}%;background:${OH_COLOR[o]};opacity:.9"></i></div><span class="ct">${p1.cnt[o]}</span></div>
-    <div class="oh-bar-row" style="margin-left:34px"><div class="oh-bar"><i style="width:${(p2.cnt[o] / maxC * 100).toFixed(0)}%;background:${OH_COLOR[o]};opacity:.55"></i></div><span class="ct">${p2.cnt[o]}</span></div>`).join("");
-  const lack1 = OHS.reduce((a, b) => p1.cnt[a] <= p1.cnt[b] ? a : b), lack2 = OHS.reduce((a, b) => p2.cnt[a] <= p2.cnt[b] ? a : b);
-  $("coupleOh").innerHTML = `<div class="card"><div class="sec-t">오행 균형 비교 <small>— 위: ${esc(p1.name)}, 아래(연한 바): ${esc(p2.name)}</small></div>${rows}
-    <div style="margin-top:10px;font-size:13px;color:var(--sub)">
-      ${esc(josa(p1.name, "이", "가"))} 부족한 오행 <b style="color:${OH_COLOR[lack1]}">${lack1}</b> / ${esc(josa(p2.name, "이", "가"))} 부족한 오행 <b style="color:${OH_COLOR[lack2]}">${lack2}</b> —
-      서로의 다수 오행이 상대의 부족 오행이면 채워주는 궁합입니다.</div>
-</div>`;
 }
