@@ -22,9 +22,10 @@
 | `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
 | `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
 | `js/shinjeom.js` | 신점 탭 (오방기 뽑기 — 전체운 2깃발 + 월별 12깃발, 월운에 따라 가중) | |
-| `js/consult.js` | 운세 상담 탭 (사람·날짜 선택 → 종합·심리·애정·연애·타로·재물·**주식**·건강·직업·주간·년간 11메뉴 아코디언 — engine.js `personDay` 등으로 계산, 날짜 clamp 1900~2100). 타로(타로운세 3장·이별 5장)는 `drawTarot`(randN 난수)로 메뉴 열기·다시 뽑기·조건 변경 때마다 새로 섞고, 같은 조건의 다시 그리기에는 패 유지(`tarotSpread`) | |
+| `js/consult.js` | 운세 상담 탭 (사람·날짜 선택 → 종합·심리·애정·연애·타로·재물·**주식**·건강·직업·주간·년간 11메뉴 아코디언 — engine.js `personDay` 등으로 계산, 날짜 clamp 1900~2100). 타로(타로운세 3장·이별 5장)는 tarot.js `drawTarotCards`(randN 난수)로 메뉴 열기·다시 뽑기·조건 변경 때마다 새로 섞고, 같은 조건의 다시 그리기에는 패 유지(`tarotSpread`) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 | `tests/property-check.js` | 계산 불변식 전수 검증(Node 전용) — 지장간 본기·신살 표 완전성·60갑자 3년 연속·12운성 유니크·생극 일관·결정론·스캔 일치. `node tests/property-check.js` | |
+| `tests/global-names.js` | 전역 이름 충돌 검사(Node 전용) — 두 js 파일이 같은 최상위 function/const 이름을 정의하면 실패. `node tests/global-names.js` | |
 
 ## 규칙
 
@@ -35,6 +36,7 @@
 - 달·연도 이동은 lunar.js 안전 범위로 clamp: 일별 캘린더 1900~2100, 월운·토정·신점 연도 1901~2099 (`moveMonth`·`moveYear` — 밖으로 나가면 이동 자체를 막음).
 - 서비스 워커: 페이지(HTML)는 네트워크 우선, js·css는 `?v=N` 정확 일치 캐시. **설치 시 index.html에서 `?v=N` URL을 파싱해 워밍**하므로 sw.js에 자산 목록을 따로 관리하지 않는다. js·css 내용을 바꿨으면 `?v=N`을 올리고 `sw.js`의 `CACHE` 이름도 올린다.
 - **저장 공간 오리진 공유 주의 (2026-11-20 실제 버그 수정)**: github.io에서 luckylab(/luckylab/)과 같은 오리진을 공유한다 — localStorage·Cache Storage가 사이트 경로가 아니라 오리진 단위로 저장된다. 따라서 ① sw.js activate는 **`hanyeon-` 접두사 캐시만** 삭제해야 하고(luckylab의 `robunso-*` 캐시를 지우면 다른 사이트의 오프라인 기능이 깨짐) ② localStorage 키는 `hanyeon_` 접두사를 유지하고 ③ `caches.keys()`·localStorage 전체 순회/삭제 코드를 추가하지 않는다.
+- **전역 이름 충돌 주의 (2026-11-22 실제 버그)**: 모든 js가 한 전역에 올라가 같은 최상위 이름을 두 파일에서 정의하면 뒤 파일이 조용히 덮어쓴다(consult.js `drawTarot`이 타로 탭 것을 덮어써 카드가 안 나왔음). 새 전역 함수를 만들면 `node tests/global-names.js`로 확인.
 - 사주 계산은 오직 `js/engine.js`를 통해서만 — 개별 파일에서 직접 lunar.js 호출 금지. 계산 파일(engine·western·selftest)은 UI 파일(app.js)의 함수를 쓰지 않는다(공용 유틸 `josa`·`randN`은 engine.js, `esc`만 app.js). Node에서도 돌아야 하므로 window 의존은 라이브러리 노출(Solar·Lunar·LunarYear·Astronomy)만.
 - 일진(`getDayGZ`)은 lunar.js가 아니라 60일 주기 산수로 계산한다(속도 — 1년 스캔의 병목이었음). selftest가 1900~2100 표본을 lunar.js와 대조하므로 바꾸면 selftest로 확인.
 - 궁합 분석 탭의 향후 1년 계산은 화면을 먼저 그린 뒤 `setTimeout`으로 채운다(`YEAR_CACHE`로 같은 날 재사용).

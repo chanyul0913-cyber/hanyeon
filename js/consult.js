@@ -38,8 +38,8 @@ const MOON_TONE = { 불: "감정의 온도가 뜨거워집니다 — 열정과 �
 const toneWord = sg => SS_DAY[sg][0];
 // 타로는 진짜 카드처럼 뽑을 때마다 새로 섞는다(crypto 난수). 메뉴를 열거나 다시 뽑기·조건(날짜·사람)이 바뀔 때만 새로 뽑고,
 // 그 사이 화면을 다시 그릴 때(탭 이동 등)는 같은 패를 유지 — holder.tarot = { key, pick }
-function drawTarot(n) { const r = randN(n * 2), pool = TAROT.map((_, i) => i); return Array.from({ length: n }, (_, k) => ({ i: pool.splice(r[k] % pool.length, 1)[0], rev: r[n + k] % 2 === 1 })); }
-function tarotSpread(holder, key, n) { if (!holder.tarot || holder.tarot.key !== key) holder.tarot = { key, pick: drawTarot(n) }; return holder.tarot.pick; }
+// 뽑기 함수는 tarot.js drawTarotCards (전역 이름 drawTarot은 타로 탭 버튼 것 — 같은 이름을 다시 정의하면 덮어써 타로 탭이 깨진다)
+function tarotSpread(holder, key, n) { if (!holder.tarot || holder.tarot.key !== key) holder.tarot = { key, pick: drawTarotCards(n) }; return holder.tarot.pick; }
 
 function renderConsult() {
   initConsult();

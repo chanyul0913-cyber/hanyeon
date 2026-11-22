@@ -7,8 +7,8 @@
 
 - 배포: https://chanyul0913-cyber.github.io/hanyeon/ (main push → GitHub Pages 자동 배포, 캐시 최대 10분)
 - 로컬: `python -m http.server 8890` → http://localhost:8890
-- 최신 커밋: `git log -1` 참고 — 운세 상담 타로(이별·재회 5장·타로운세 3장) 매번 새로 섞기
-- 캐시 버전: sw CACHE `hanyeon-v57` / index `?v` — engine 38 · app 40 · couple 22 · daily 35 · western 39 · consult 22 · selftest 39 · style 9
+- 최신 커밋: `git log -1` 참고 — 타로 탭 카드 안 나오던 문제(전역 이름 충돌) 수정·충돌 검사 도구
+- 캐시 버전: sw CACHE `hanyeon-v58` / index `?v` — engine 38 · app 40 · couple 22 · daily 35 · western 39 · tarot 36 · consult 23 · selftest 39 · style 9
 
 ## 현재 위치
 
@@ -19,7 +19,7 @@
 ## 다음 할 일 절차 (이어받는 세션용)
 
 1. `git pull --ff-only` → `python -m http.server 8890` → http://localhost:8890 로컬 확인
-2. 콘솔 `await selfTest()` → `ok: true` 확인 (자동 실행은 `?selftest` 붙였을 때만)
+2. 콘솔 `await selfTest()` → `ok: true` 확인 (자동 실행은 `?selftest` 붙였을 때만) + `node tests/property-check.js` · `node tests/global-names.js`
 3. js/css 내용 수정 시 → index.html `?v=N` +1 → `sw.js` CACHE 이름 +1 → 커밋·push(자동 배포)
 4. 새 탭 추가 시 → index.html(버튼·section) + `renderAll`의 R 표 + `switchTab` 해시 정규식
 5. 남은 과제: 없음 — 사용자의 새 요청을 받으면 AGENTS.md 규칙대로 진행
