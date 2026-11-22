@@ -22,7 +22,7 @@
 | `js/tojeong.js` | 토정비결 탭 (144괘 원문·풀이 데이터, 괘 계산은 engine.js `tojeong`) | |
 | `js/tarot.js` | 타로 탭 (메이저 아르카나 22장, 그녀의 마음 3장 뽑기) | |
 | `js/shinjeom.js` | 신점 탭 (오방기 뽑기 — 전체운 2깃발 + 월별 12깃발, 월운에 따라 가중) | |
-| `js/consult.js` | 운세 상담 탭 (사람·날짜 선택 → 종합·심리·애정·연애·타로·재물·**주식**·건강·직업·주간·년간 11메뉴 아코디언 — engine.js `personDay` 등으로 계산, 날짜 clamp 1900~2100) | |
+| `js/consult.js` | 운세 상담 탭 (사람·날짜 선택 → 종합·심리·애정·연애·타로·재물·**주식**·건강·직업·주간·년간 11메뉴 아코디언 — engine.js `personDay` 등으로 계산, 날짜 clamp 1900~2100). 타로(타로운세 3장·이별 5장)는 `drawTarot`(randN 난수)로 메뉴 열기·다시 뽑기·조건 변경 때마다 새로 섞고, 같은 조건의 다시 그리기에는 패 유지(`tarotSpread`) | |
 | `js/selftest.js` | 자가 점검 (`await selfTest()` 콘솔) | |
 | `tests/property-check.js` | 계산 불변식 전수 검증(Node 전용) — 지장간 본기·신살 표 완전성·60갑자 3년 연속·12운성 유니크·생극 일관·결정론·스캔 일치. `node tests/property-check.js` | |
 

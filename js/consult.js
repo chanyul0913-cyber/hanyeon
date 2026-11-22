@@ -36,7 +36,10 @@ const WS_DAY = { 장생: "활력이 살아나는 날", 목욕: "감정이 예민
 const OH_TIP = { 목: "바깥 산책·스트레칭으로 기운을 펴면 회복이 빠릅니다.", 화: "일찍 자고 심박을 안정시키는 것이 최고의 보약입니다.", 토: "규칙적인 식사와 따뜻한 음식이 몸을 채워 줍니다.", 금: "심호흡·정리정돈으로 마음의 숨통을 트세요.", 수: "수분 섭취와 충분한 수면이 기운을 돌려줍니다." };
 const MOON_TONE = { 불: "감정의 온도가 뜨거워집니다 — 열정과 성급함이 함께 옵니다.", 흙: "감정이 느리고 안정적입니다 — 천천히 굳게 움직입니다.", 바람: "생각과 대화가 많아집니다 — 머리로 먼저 움직이는 감정입니다.", 물: "감정이 깊어집니다 — 공감과 그리움이 커집니다." };
 const toneWord = sg => SS_DAY[sg][0];
-const seedHash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.codePointAt(0), 16777619); return h >>> 0; };
+// 타로는 진짜 카드처럼 뽑을 때마다 새로 섞는다(crypto 난수). 메뉴를 열거나 다시 뽑기·조건(날짜·사람)이 바뀔 때만 새로 뽑고,
+// 그 사이 화면을 다시 그릴 때(탭 이동 등)는 같은 패를 유지 — holder.tarot = { key, pick }
+function drawTarot(n) { const r = randN(n * 2), pool = TAROT.map((_, i) => i); return Array.from({ length: n }, (_, k) => ({ i: pool.splice(r[k] % pool.length, 1)[0], rev: r[n + k] % 2 === 1 })); }
+function tarotSpread(holder, key, n) { if (!holder.tarot || holder.tarot.key !== key) holder.tarot = { key, pick: drawTarot(n) }; return holder.tarot.pick; }
 
 function renderConsult() {
   initConsult();
@@ -72,22 +75,22 @@ function renderConsult() {
 }
 
 function initConsult() {
-  if (!ST.consult) ST.consult = { who: "m", open: null, tarotRnd: 0 };
+  if (!ST.consult) ST.consult = { who: "m", open: null, tarot: null };
   if (!ST.consult.date) ST.consult.date = ymdOf(today());
 }
 function consultDate() { const c = ST.consult.date; return new Date(Math.floor(c / 10000), Math.floor(c / 100) % 100 - 1, c % 100, 12); }
-function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open = null; ST.consult.tarotRnd = 0; ST.consult.scrollAfter = false; renderConsult(); }
-function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarotRnd = 0; ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
+function setConsultWho(k) { initConsult(); ST.consult.who = k; ST.consult.open = null; ST.consult.scrollAfter = false; renderConsult(); }
+function openConsult(k) { initConsult(); ST.consult.open = ST.consult.open === k ? null : k; if (k === "tarot") ST.consult.tarot = null; if (k === "breakup" && ST.breakup) ST.breakup.tarot = null; ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
 function closeConsult() { initConsult(); ST.consult.open = null; ST.consult.scrollAfter = false; renderConsult(); window.scrollTo({ top: 0, behavior: "smooth" }); }
-function redrawConsultTarot() { initConsult(); ST.consult.tarotRnd = Date.now() >>> 0; ST.consult.scrollAfter = true; renderConsult(); }
+function redrawConsultTarot() { initConsult(); ST.consult.tarot = null; ST.consult.scrollAfter = true; renderConsult(); }
 // 이별·재회 — 입력 상태 관리
-function setBrokeDate(v) { if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 };
+function setBrokeDate(v) { if (!ST.breakup) ST.breakup = { date: null, who: null, tarot: null };
   const m = (v || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return;
   const n = +m[1] * 10000 + +m[2] * 100 + +m[3];
   if (n < 19000101 || n > ymdOf(today())) return;
   ST.breakup.date = n; renderConsult(); }
-function setBreakupWho(k) { if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 }; ST.breakup.who = k; ST.breakup.tarotRnd = 0; renderConsult(); }
-function redrawBreakupTarot() { if (ST.breakup) ST.breakup.tarotRnd = Date.now() >>> 0; renderConsult(); }
+function setBreakupWho(k) { if (!ST.breakup) ST.breakup = { date: null, who: null, tarot: null }; ST.breakup.who = k; renderConsult(); }
+function redrawBreakupTarot() { if (ST.breakup) ST.breakup.tarot = null; renderConsult(); }
 // 날짜 선택 — 칩(오늘 기준 ±7일)과 하루 이동. lunar.js 안전 범위(1900~2100)로 clamp
 function setConsultDate(n) { initConsult(); ST.consult.date = ymdOf(addDays(today(), n)); ST.consult.scrollAfter = ST.consult.open !== null; renderConsult(); }
 function shiftConsultDate(dir) {
@@ -159,7 +162,7 @@ function buildConsult(key, p, isMale, t, pd) {
     title = "이별·재회 상담";
     const who = isMale ? "m" : "f"; // buildConsult 스코프 — isMale에서 파생
     // 상태 초기화 — 헤어진 날짜·청한 사람이 있으면 바로 분석
-    if (!ST.breakup) ST.breakup = { date: null, who: null, tarotRnd: 0 };
+    if (!ST.breakup) ST.breakup = { date: null, who: null, tarot: null };
     const partner = who === "m" ? ST.p2 : ST.p1;
     const viewerWantOh = who === "m" ? ST.p1.jaeOh : ST.p2.gwanOh, partnerWantOh = who === "m" ? ST.p2.gwanOh : ST.p1.jaeOh;
     const ready = !!(ST.breakup.date && ST.breakup.who);
@@ -200,10 +203,8 @@ function buildConsult(key, p, isMale, t, pd) {
         <div class="reason"><b>${fmtYMD(ST.breakup.date)} 하늘</b> — ${posStr(skyB)}<div class="rx">${bSig.length ? esc(bSig.join(" / ")) : "뚜렷한 각 없음"}</div></div>
         <div class="reason"><b>지금 하늘</b> — ${posStr(skyN)}<div class="rx">${nSig.length ? esc(nSig.join(" / ")) : "뚜렷한 각 없음"}</div></div>`;
     }
-    // 타로 5장 — 이별 스프레드 (같은 설정이면 같은 카드)
-    const seed = (seedHash(`${ST.breakup.date}-${ST.p1.name}-${ST.p2.name}-${ST.breakup.who}`) ^ (ST.breakup.tarotRnd || 0)) >>> 0;
-    let x = seed; const pool = TAROT.map((_, i) => i), pick = [];
-    for (let k = 0; k < 5; k++) { x = Math.imul(x ^ x >>> 15, 2246822519) >>> 0; pick.push({ i: pool.splice(x % pool.length, 1)[0], rev: (x >>> 8) % 2 === 1 }); }
+    // 타로 5장 — 이별 스프레드 (메뉴 열 때·다시 뽑기·조건 변경 시 새로 섞음)
+    const pick = tarotSpread(ST.breakup, `${ST.breakup.date}-${ST.p1.name}-${ST.p2.name}-${ST.breakup.who}-${who}`, 5);
     const BPOS = ["그동안의 관계", "헤어진 뒤 상대의 마음", "상대가 남긴 연결고리", "앞으로의 상대 마음", "이 관계의 미래"];
     const cards = pick.map(c2 => { const t2 = TAROT[c2.i]; return { t: t2, rev: c2.rev, tone: c2.rev ? t2[7] : t2[6], text: c2.rev ? t2[5] : t2[4] }; });
     const cardHtml = cards.map((c, k) => `<div class="part"><div class="pt"><span>${BPOS[k]} <span class="pv">${c.t[0]}. ${c.t[1]} · ${c.rev ? "역방향" : "정방향"}</span></span><span class="ps" style="color:${c.tone > 0 ? "var(--good)" : c.tone < 0 ? "var(--bad)" : "var(--sub)"}">${c.tone > 0 ? "긍정" : c.tone < 0 ? "주의" : "복합"}</span></div><div class="px" style="font-size:20px;text-align:center;margin:4px 0;${c.rev ? "transform:rotate(180deg)" : ""}">${c.t[3]}</div><div class="px">${esc(c.text)}</div></div>`).join("");
@@ -310,9 +311,7 @@ function buildConsult(key, p, isMale, t, pd) {
   if (key === "tarot") {
     title = "타로운세 — 오늘의 카드 3장";
     if (typeof TAROT === "undefined") return `<div class="card"><div class="sec-t">${title}</div><div class="reason">타로 데이터(tarot.js)를 불러오지 못했습니다.</div></div>`;
-    const seed = (seedHash(`${pd.date}-${p.name}`) ^ (ST.consult.tarotRnd || 0)) >>> 0;
-    let x = seed; const pool = TAROT.map((_, i) => i), pick = [];
-    for (let k = 0; k < 3; k++) { x = Math.imul(x ^ x >>> 15, 2246822519) >>> 0; pick.push({ i: pool.splice(x % pool.length, 1)[0], rev: (x >>> 8) % 2 === 1 }); }
+    const pick = tarotSpread(ST.consult, `${pd.date}-${p.name}`, 3);
     const cards = pick.map(c => { const t2 = TAROT[c.i]; return { t: t2, rev: c.rev, tone: c.rev ? t2[7] : t2[6], text: c.rev ? t2[5] : t2[4] }; });
     const POS = ["과거 — 그동안의 흐름", "현재 — 지금의 상태", "미래 — 앞으로의 방향"];
     const sum = cards.reduce((s, c) => s + c.tone, 0) + cards[1].tone;
@@ -324,7 +323,7 @@ function buildConsult(key, p, isMale, t, pd) {
     return `<div class="card gold"><div class="sec-t">${title} <small>${esc(p.name)} · ${String(pd.date).slice(4, 6)}/${String(pd.date).slice(6)} · 결과는 하루 동안 같게 유지</small></div>${cardHtml}
       <div class="reason"><b>종합</b> — ${esc(verdict)}</div>
       <div style="margin-top:10px;text-align:center"><button onclick="redrawConsultTarot()">🔄 다시 뽑기</button></div>
-      <div style="font-size:12px;color:var(--sub);margin-top:8px">재미용 점입니다. 같은 날 같은 사람은 같은 카드가 나오고, 다시 뽑기로 새로 섞을 수 있습니다.</div></div>`;
+      <div style="font-size:12px;color:var(--sub);margin-top:8px">재미용 점입니다. 메뉴를 열 때마다, 다시 뽑기를 누를 때마다 카드를 새로 섞습니다.</div></div>`;
   }
 
   if (key === "wealth") {
