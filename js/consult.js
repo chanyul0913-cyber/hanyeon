@@ -155,7 +155,19 @@ function buildConsult(key, p, isMale, t, pd) {
     cr.reasons.slice(0, 4).forEach(x => rows.push({ t: x.t, s: x.s, x: x.x }));
     const wHap = !!(w && w.herStrong);
     if (wHap) rows.push({ t: "✿ 서양합궁", s: 5, x: "오늘의 달·금성이 여자 출생 차트를 조화각으로만 비춤 — 여자가 편안해지는 날" });
-    return wrap(title, cr, rows, cr.flags.danger ? "오늘은 예민한 이야기를 미루는 게 사랑을 지키는 길입니다. 말투를 세 배로 부드럽게." : cr.flags.herStrong || wHap ? "여자가 편안해지는 날 — 오늘 만나면 관계가 한 단계 부드러워집니다." : cr.grade.k === "peak" || cr.grade.k === "good" ? "두 사람 모두 기운이 열려 있습니다. 하고 싶었던 말을 오늘 꺼내세요." : "평소처럼 존중하는 것만으로 충분한 날입니다.");
+    // 위는 두 사람 공통(속궁합). 아래는 고른 사람(나) 쪽과 상대 쪽을 따로 — 예전엔 공통만 있어 남녀 결과가 글자까지 같았다
+    const partner = isMale ? ST.p2 : ST.p1, pdP = personDay(partner, t);
+    const side = (q, loveOh, me) => {
+      const who = me ? "나" : "상대", out = [{ t: `${who}의 오늘 컨디션 — ${q.score}점 · ${q.grade.label}`, s: q.score - 50, x: `${me ? "내" : partner.name + "의"} 일간에 ${q.sg} / 지지에 ${q.bg} — ${SS_DAY[q.sg][1]}` }];
+      if (q.dayGZ.oh === loveOh) out.push({ t: `${who} — 이성 기운일(${isMale === me ? "재성" : "관성"})`, s: 4, x: me ? "상대가 더 그립고 마음이 쏠리는 날 — 먼저 연락해도 자연스럽습니다." : "상대가 당신을 떠올리기 쉬운 날 — 연락에 반응이 좋습니다." });
+      if (q.rel === "육합" || q.rel === "삼합") out.push({ t: `${who} — 일지 ${q.rel}`, s: 3, x: me ? "내 마음이 편안하게 열리는 날입니다." : "상대의 마음이 편안하게 열리는 날입니다." });
+      else if (["충", "원진", "형"].includes(q.rel)) out.push({ t: `${who} — 일지 ${q.rel}`, s: -3, x: me ? "내가 예민해지기 쉬운 날 — 서운한 말이 먼저 나가지 않게." : "상대가 예민한 날 — 날 선 말은 흘려 듣고 먼저 감싸 주세요." });
+      if (q.ss.some(x => x.name === "도화살")) out.push({ t: `${who} — 도화살`, s: 3, x: me ? "내 매력이 돋보이는 날입니다." : "상대의 매력이 살아나는 날 — 칭찬 한마디가 잘 통합니다." });
+      return out;
+    };
+    rows.push(...side(pd, isMale ? p.jaeOh : p.gwanOh, true), ...side(pdP, isMale ? partner.gwanOh : partner.jaeOh, false));
+    const calm = isMale ? "그녀가 편안해지는 날 — 오늘 만나면 관계가 한 단계 부드러워집니다." : "내 몸과 마음이 편안해지는 날 — 오늘은 마음을 조금 더 열어 보여도 좋습니다.";
+    return wrap(title, cr, rows, cr.flags.danger ? "오늘은 예민한 이야기를 미루는 게 사랑을 지키는 길입니다. 말투를 세 배로 부드럽게." : cr.flags.herStrong || wHap ? calm : cr.grade.k === "peak" || cr.grade.k === "good" ? "두 사람 모두 기운이 열려 있습니다. 하고 싶었던 말을 오늘 꺼내세요." : "평소처럼 존중하는 것만으로 충분한 날입니다.");
   }
 
   if (key === "breakup") {

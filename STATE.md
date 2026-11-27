@@ -3,12 +3,12 @@
 > 이 문서는 "지금 프로젝트가 어디에 있는지"를 담는 살아있는 문서다. **세션을 마칠 때마다 최신으로 갱신**한다.
 > 규칙·파일 구조는 `AGENTS.md`, 세션별 작업 이력은 `작업기록.md`를 본다.
 
-최종 갱신: 2026-11-22 (Claude Code)
+최종 갱신: 2026-11-27 (Claude Code)
 
 - 배포: https://chanyul0913-cyber.github.io/hanyeon/ (main push → GitHub Pages 자동 배포, 캐시 최대 10분)
 - 로컬: `python -m http.server 8890` → http://localhost:8890
-- 최신 커밋: `git log -1` 참고 — 타로 탭 카드 안 나오던 문제(전역 이름 충돌) 수정·충돌 검사 도구
-- 캐시 버전: sw CACHE `hanyeon-v58` / index `?v` — engine 38 · app 40 · couple 22 · daily 35 · western 39 · tarot 36 · consult 23 · selftest 39 · style 9
+- 최신 커밋: `git log -1` 참고 — 연애운세 남녀 결과가 같던 문제(나·상대 관점 추가)
+- 캐시 버전: sw CACHE `hanyeon-v59` / index `?v` — engine 38 · app 40 · couple 22 · daily 35 · western 39 · tarot 36 · consult 24 · selftest 39 · style 9
 
 ## 현재 위치
 
